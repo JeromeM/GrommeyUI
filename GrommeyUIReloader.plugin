@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<Plugin>
+    <Information>
+        <Name>~GrommeyUIReloader</Name>
+        <Author>Grommey</Author>
+        <Version>0.1.0</Version>
+        <Description>Recharge GrommeyUI. Ne pas charger à la main.</Description>
+    </Information>
+    <Package>GrommeyUI.Reloader.Main</Package>
+    <Configuration Apartment="~GrommeyUIReloader" />
+</Plugin>

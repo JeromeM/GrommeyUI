@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<Plugin>
+    <Information>
+        <Name>GrommeyUI</Name>
+        <Author>Grommey</Author>
+        <Version>0.1.0</Version>
+        <Description>Interface moderne et épurée tout-en-un pour LOTRO : thème, profils, déplacement des fenêtres et modules.
+
+Commandes : /gui ou /grommey</Description>
+    </Information>
+    <Package>GrommeyUI.Core.Main</Package>
+    <Configuration Apartment="GrommeyUI" />
+</Plugin>
