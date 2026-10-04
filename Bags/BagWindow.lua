@@ -18,6 +18,8 @@ local SCROLLBAR_WIDTH = 14;
 local ICON_SIZE = 32;
 local ICON_INSET = 3;
 
+-- Items added this many seconds after loading are the login, not new loot
+local LOGIN_GRACE = 15;
 local STACK_DELAY = 0.3;   -- seconds between two stack merges, the server needs time
 local STACK_MAX_DROPS = 200;
 local STACK_MAX_TRIES = 2;
@@ -39,6 +41,7 @@ function Grommey.Bags.Window:Constructor(settings)
     self.headers = {};
     self.newSlots = {};
     self.callbacks = {};
+    self.createdAt = Turbine.Engine.GetGameTime();
     self.dirty = true;
 
     self:CreateToolbar();
@@ -64,6 +67,14 @@ function Grommey.Bags.Window:Constructor(settings)
         end
     end
 
+    -- Moved by someone else (move mode, reset): take the corner again at the next layout
+    self.PositionChanged = function()
+        if (not self.positioning and self.sizedOnce) then
+            self.anchorDirty = true;
+            self:RequestLayout();
+        end
+    end
+
     Grommey.Movers.Register("bags", self, L("Bags"),
         function() return Turbine.UI.Display.GetWidth() - self:GetWidth() - 40; end,
         function() return Turbine.UI.Display.GetHeight() - self:GetHeight() - 140; end);
@@ -71,6 +82,7 @@ function Grommey.Bags.Window:Constructor(settings)
     -- Build once hidden so the first opening is instant
     self.forceLayout = true;
     self:Layout();
+    self.sizedOnce = true;
 end
 
 function Grommey.Bags.Window:CreateToolbar()
@@ -400,24 +412,33 @@ function Grommey.Bags.Window:ResizeToContent(innerWidth, contentHeight)
     width = math.max(width, 380);
     local height = chrome + listHeight;
 
-    -- Grow toward the centre of the screen: a bag on the right keeps its right edge, a low one its bottom edge
-    local oldWidth, oldHeight = self:GetSize();
-    local left, top = self:GetPosition();
-    -- The first size after loading keeps the saved position, the window had a temporary size before
-    if (self.sizedOnce) then
-        if (left + oldWidth / 2 > screenWidth / 2) then left = left + oldWidth - width; end
-        if (top + oldHeight / 2 > screenHeight / 2) then top = top + oldHeight - height; end
+    -- The bag keeps the corner chosen by the player (the one nearest to the screen edge) and grows
+    -- from it. The corner is saved, so the bag does not drift when it changes size while loading.
+    local anchor = self.settings.anchor;
+    if (anchor == nil or self.anchorDirty) then
+        local left, top = self:GetPosition();
+        local oldWidth, oldHeight = self:GetSize();
+        local right = left + oldWidth > screenWidth / 2 + oldWidth / 2;
+        local bottom = top + oldHeight > screenHeight / 2 + oldHeight / 2;
+        anchor = {
+            right = right; bottom = bottom;
+            x = right and (left + oldWidth) or left;
+            y = bottom and (top + oldHeight) or top;
+        };
+        self.settings.anchor = anchor;
+        self.anchorDirty = false;
+        Grommey.Profiles.RequestSave();
     end
-    self.sizedOnce = true;
+    local left = anchor.right and (anchor.x - width) or anchor.x;
+    local top = anchor.bottom and (anchor.y - height) or anchor.y;
     left = Grommey.Clamp(left, 0, math.max(0, screenWidth - width));
     top = Grommey.Clamp(top, 0, math.max(0, screenHeight - height));
 
     self:Resize(width, height);
+    self.positioning = true;
     self:SetPosition(left, top);
-    if (left ~= self.savedLeft or top ~= self.savedTop) then
-        self.savedLeft, self.savedTop = left, top;
-        Grommey.Movers.SavePosition("bags", left, top);
-    end
+    self.positioning = false;
+    Grommey.Movers.SavePosition("bags", left, top);
 
     -- Toolbar
     local contentWidth = width - 2;
@@ -570,7 +591,10 @@ function Grommey.Bags.Window:RegisterEvents()
     end
 
     Add(self.backpack, "ItemAdded", function(sender, args)
-        self.newSlots[args.Index] = true;
+        -- While logging in the game adds every item one by one, they are not new
+        if (Turbine.Engine.GetGameTime() - self.createdAt >= LOGIN_GRACE) then
+            self.newSlots[args.Index] = true;
+        end
         self:RequestLayout();
     end);
     Add(self.backpack, "ItemRemoved", function(sender, args)

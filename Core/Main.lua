@@ -5,6 +5,7 @@ import "GrommeyUI.Core";
 -- Modules are imported here, after the core. They register themselves with Grommey.Modules.
 import "GrommeyUI.Bags";
 import "GrommeyUI.UnitFrames";
+import "GrommeyUI.InfoBar";
 
 local RELOADER = "~GrommeyUIReloader";
 

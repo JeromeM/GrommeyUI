@@ -93,6 +93,8 @@ Grommey.Modules.Register({
     Enable = function(settings)
         SetNativeBags(false);
         window = Grommey.Bags.Window(settings);
+        -- Other modules (info bar) can open the bag
+        Grommey.Bags.Instance = window;
         Grommey.On("ThemeChanged", Refresh);
         Grommey.On("HudToggled", function(hidden) if (hidden and window) then window:SetVisible(false); end end);
         WarnAboutOtherBagPlugins();
@@ -100,6 +102,7 @@ Grommey.Modules.Register({
 
     Disable = function()
         if (window) then window:Destroy(); window = nil; end
+        Grommey.Bags.Instance = nil;
         Grommey.Off("ThemeChanged", Refresh);
         SetNativeBags(true);
     end;
