@@ -290,22 +290,22 @@ function Grommey.Movers.Toggle()
     if (active) then Grommey.Movers.Exit(); else Grommey.Movers.Enter(); end
 end
 
--- The game shortcut to move the interface (Ctrl + \ by default) also starts our move mode,
--- and the one hiding the interface (F12 by default) hides GrommeyUI too
-local ACTION_MOVE_UI = 0x1000007B;
+-- The game shortcut hiding the interface (F12 by default) hides GrommeyUI too.
+-- The one moving the interface (Ctrl + \) is left alone: both move modes on top of each other are unreadable
 local ACTION_TOGGLE_HUD = 0x100000B3;
 Grommey.HudHidden = false;
 
-local keyListener = Turbine.UI.Window();
+-- Kept in a global: a window only held by a local variable is garbage collected by the game
+-- once this file has run, and then never receives the keys
+Grommey.KeyListener = Turbine.UI.Window();
+local keyListener = Grommey.KeyListener;
 keyListener:SetSize(1, 1);
 keyListener:SetPosition(0, 0);
 keyListener:SetMouseVisible(false);
 keyListener:SetVisible(true);
 keyListener:SetWantsKeyEvents(true);
 keyListener.KeyDown = function(sender, args)
-    if (args.Action == ACTION_MOVE_UI) then
-        Grommey.Movers.Toggle();
-    elseif (args.Action == ACTION_TOGGLE_HUD) then
+    if (args.Action == ACTION_TOGGLE_HUD) then
         Grommey.HudHidden = not Grommey.HudHidden;
         Grommey.Fire("HudToggled", Grommey.HudHidden);
     end
