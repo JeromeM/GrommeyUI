@@ -271,7 +271,7 @@ local function CreateMenuItem(parent, index, page)
     marker:SetSize(3, 24);
     marker:SetMouseVisible(false);
 
-    local label = UI.Label(item, 20, 0, MENU_WIDTH - 24, 36, L(page.key), { size = 15; });
+    local label = UI.Label(item, 20, 0, MENU_WIDTH - 24, 36, L(page.title or page.key), { size = 15; });
 
     local hovered = false;
     item.Paint = function()
@@ -305,6 +305,17 @@ function Grommey.Options.Create()
     divider:SetPosition(MENU_WIDTH, 0);
     divider:SetSize(1, contentHeight);
     Theme.Track(function() divider:SetBackColor(Theme.Color("border")); end);
+
+    -- Enabled modules with settings get their own page after the core pages
+    for _, module in ipairs(Grommey.Modules.List()) do
+        if (module.BuildOptions and Grommey.Modules.IsEnabled(module.id)) then
+            table.insert(Pages, {
+                key = "module:" .. module.id;
+                title = module.name;
+                build = function(page, width) module.BuildOptions(page, width, Grommey.Modules.Settings(module.id)); end;
+            });
+        end
+    end
 
     for index, page in ipairs(Pages) do
         menuItems[page.key] = CreateMenuItem(menu, index, page);

@@ -27,6 +27,30 @@ function Grommey.Fire(eventName, ...)
     end
 end
 
+-- Several handlers on the same Turbine event (backpack, wallet...), returns the handler to remove it later
+function Grommey.AddCallback(object, eventName, callback)
+    local current = object[eventName];
+    if (current == nil) then
+        object[eventName] = callback;
+    elseif (type(current) == "table") then
+        table.insert(current, callback);
+    else
+        object[eventName] = { current, callback };
+    end
+    return callback;
+end
+
+function Grommey.RemoveCallback(object, eventName, callback)
+    local current = object[eventName];
+    if (current == callback) then
+        object[eventName] = nil;
+    elseif (type(current) == "table") then
+        for index = #current, 1, -1 do
+            if (current[index] == callback) then table.remove(current, index); end
+        end
+    end
+end
+
 function Grommey.Print(text)
     Turbine.Shell.WriteLine("<rgb=#0CD29F>GrommeyUI</rgb> " .. tostring(text));
 end

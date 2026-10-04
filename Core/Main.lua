@@ -2,8 +2,8 @@
 -- and registers the /gui command.
 
 import "GrommeyUI.Core";
--- Modules are imported here, after the core, as they are added:
--- import "GrommeyUI.UnitFrames";
+-- Modules are imported here, after the core. They register themselves with Grommey.Modules.
+import "GrommeyUI.Bags";
 
 local RELOADER = "~GrommeyUIReloader";
 

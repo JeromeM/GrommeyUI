@@ -3,7 +3,7 @@
     <Information>
         <Name>GrommeyUI</Name>
         <Author>Grommey</Author>
-        <Version>0.1.0</Version>
+        <Version>0.2.0</Version>
         <Description>Interface moderne et épurée tout-en-un pour LOTRO : thème, profils, déplacement des fenêtres et modules.
 
 Commandes : /gui ou /grommey</Description>

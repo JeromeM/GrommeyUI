@@ -85,6 +85,11 @@ local French = {
 local language = Turbine.Engine.GetLanguage();
 Grommey.IsFrench = (Turbine.Language ~= nil and language == Turbine.Language.French);
 
+-- Modules add their own French texts
+function Grommey.AddTranslations(translations)
+    for english, french in pairs(translations) do French[english] = french; end
+end
+
 function L(text)
     if (Grommey.IsFrench and French[text]) then return French[text]; end
     return text;

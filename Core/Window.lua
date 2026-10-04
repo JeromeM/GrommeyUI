@@ -45,6 +45,8 @@ function Grommey.Window:Constructor(id, title, width, height)
 
     -- Dragging by the title bar
     self.titleBar.MouseDown = function(sender, args)
+        -- Fixed windows only move in move mode
+        if (self.movable == false) then return; end
         self.dragging = true;
         self.dragX = args.X;
         self.dragY = args.Y;
@@ -71,6 +73,17 @@ function Grommey.Window:Constructor(id, title, width, height)
     self.KeyDown = function(sender, args)
         if (args.Action == Turbine.UI.Lotro.Action.Escape and self:IsVisible()) then self:SetVisible(false); end
     end
+end
+
+-- Changes the size of the window and of its title bar and content
+function Grommey.Window:Resize(width, height)
+    self:SetSize(width, height);
+    self.frame.Resize(width, height);
+    self.titleBar:SetSize(width - 2, 30);
+    self.accentLine:SetSize(width - 2, 2);
+    self.titleLabel:SetSize(width - 60, 28);
+    self.closeButton:SetPosition(width - 34, 2);
+    self.content:SetSize(width - 2, height - 32);
 end
 
 function Grommey.Window:SetTitle(title)
