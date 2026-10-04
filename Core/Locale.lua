@@ -20,11 +20,12 @@ local French = {
     ["/gui - open or close the options"] = "/gui - ouvre ou ferme les options",
     ["/gui move - move the frames"] = "/gui move - déplace les fenêtres (ou Ctrl + \\ comme dans le jeu)",
     ["/gui reload - reload the interface"] = "/gui reload - recharge l'interface",
+    ["Game windows that can be replaced:"] = "Fenêtres du jeu remplaçables :",
     ["/gui reset - put every frame back in place"] = "/gui reset - remet toutes les fenêtres à leur place",
     ["Welcome to GrommeyUI. Pick a theme, then add modules as they come."] = "Bienvenue dans GrommeyUI. Choisis un thème, puis ajoute les modules au fur et à mesure.",
 
     -- Theme
-    ["Accent colour"] = "Couleur d'accent",
+    ["Accent colour"] = "Couleur du thème",
     ["Presets"] = "Préréglages",
     ["Red"] = "Rouge",
     ["Green"] = "Vert",

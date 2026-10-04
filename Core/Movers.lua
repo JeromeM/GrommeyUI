@@ -267,11 +267,12 @@ function Grommey.Movers.Enter()
     if (active) then return; end
     active = true;
     Grommey.UI.ClosePopup();
+    -- Frames may change for the move mode (previews), let them do it before drawing the boxes
+    Grommey.Fire("MoveModeChanged", true);
     grid = CreateGrid();
     grid.Rebuild();
     for _, id in ipairs(order) do overlays[id] = CreateOverlay(id); end
     toolbar = CreateToolbar();
-    Grommey.Fire("MoveModeChanged", true);
 end
 
 function Grommey.Movers.Exit()

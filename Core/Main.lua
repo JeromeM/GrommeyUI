@@ -4,6 +4,7 @@
 import "GrommeyUI.Core";
 -- Modules are imported here, after the core. They register themselves with Grommey.Modules.
 import "GrommeyUI.Bags";
+import "GrommeyUI.UnitFrames";
 
 local RELOADER = "~GrommeyUIReloader";
 
@@ -37,13 +38,38 @@ function Grommey.Command:Execute(command, arguments)
         Grommey.Reload();
     elseif (action == "reset") then
         Grommey.Movers.ResetAll();
+    elseif (action == "target") then
+        -- What the game tells about the target, to check class and type detection
+        local target = Turbine.Gameplay.LocalPlayer.GetInstance():GetTarget();
+        if (target == nil) then Grommey.Print("no target"); return; end
+        Grommey.Print("name: " .. tostring(target:GetName()));
+        Grommey.Print("GetClass: " .. tostring(target.GetClass ~= nil) .. "  GetLevel: " .. tostring(target.GetLevel ~= nil) .. "  GetMorale: " .. tostring(target.GetMorale ~= nil));
+        if (target.GetClass ~= nil) then
+            local ok, class = pcall(target.GetClass, target);
+            Grommey.Print("class value: " .. tostring(class) .. " (" .. tostring(ok) .. ")");
+            local names = {};
+            for name, value in pairs(Turbine.Gameplay.Class or {}) do
+                if (type(value) == "number") then table.insert(names, name .. "=" .. value); end
+            end
+            table.sort(names);
+            Grommey.Print("classes: " .. table.concat(names, ", "));
+        end
+    elseif (action == "elements") then
+        -- Game windows a plugin is allowed to switch off
+        local names = {};
+        for name, value in pairs(Turbine.UI.Lotro.LotroUIElement or {}) do
+            if (type(value) == "number") then table.insert(names, name .. " = " .. value); end
+        end
+        table.sort(names);
+        Grommey.Print(L("Game windows that can be replaced:") .. " " .. #names);
+        for _, line in ipairs(names) do Grommey.Print("  " .. line); end
     else
         Grommey.Options.Toggle();
     end
 end
 
 function Grommey.Command:GetHelp()
-    return "/gui [move | reload | reset]";
+    return "/gui [move | reload | reset | elements]";
 end
 
 function Grommey.Command:GetShortHelp()
