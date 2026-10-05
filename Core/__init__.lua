@@ -5,6 +5,8 @@ import "Turbine.UI.Lotro";
 
 import "GrommeyUI.Core.TurbineFiles.Class";
 import "GrommeyUI.Core.Locale";
+import "GrommeyUI.Locales.fr";
+import "GrommeyUI.Locales.de";
 import "GrommeyUI.Core.Events";
 import "GrommeyUI.Core.Storage";
 import "GrommeyUI.Core.Profiles";
@@ -15,3 +17,4 @@ import "GrommeyUI.Core.Movers";
 import "GrommeyUI.Core.Modules";
 import "GrommeyUI.Core.Launcher";
 import "GrommeyUI.Core.Options";
+import "GrommeyUI.Core.Setup";

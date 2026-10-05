@@ -30,6 +30,9 @@ Grommey.Options.Create();
 Grommey.Launcher.Create();
 Grommey.Modules.StartAll();
 
+-- First time on this account: the setup assistant, once the interface is up
+if (not Grommey.Profiles.IsSetupDone()) then Grommey.Delay("Setup", 1, Grommey.Setup.Start); end
+
 -- Chat command: /gui and /grommey
 Grommey.Command = Turbine.ShellCommand();
 

@@ -234,7 +234,3 @@ function UF.PartyFrames:Destroy()
     Grommey.Movers.Unregister("unitframe:party");
     self:SetVisible(false);
 end
-
-Grommey.AddTranslations({
-    ["Party"] = "Groupe",
-});

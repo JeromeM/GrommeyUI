@@ -78,9 +78,3 @@ function UF.SetPreview(enabled)
     UF.Preview = enabled;
     Grommey.Fire("UnitFramesPreviewChanged", enabled);
 end
-
-Grommey.AddTranslations({
-    ["Test effect %d"] = "Effet de test %d",
-    ["Fake effect to set up the icons. The real description of the buff or debuff is shown here."] = "Effet fictif pour régler les icônes. La vraie description du buff ou du débuff s'affiche ici.",
-    ["Training dummy"] = "Mannequin d'entraînement",
-});

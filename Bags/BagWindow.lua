@@ -644,15 +644,3 @@ function Grommey.Bags.Window:Destroy()
     Grommey.Movers.Unregister("bags");
     self:SetVisible(false);
 end
-
-Grommey.AddTranslations({
-    ["Bags"] = "Sacs",
-    ["Search..."] = "Rechercher...",
-    ["Stack"] = "Empiler",
-    ["All bags"] = "Tous les sacs",
-    ["By category"] = "Par catégorie",
-    ["New items"] = "Nouveaux objets",
-    ["Free slots"] = "Emplacements libres",
-    ["%d / %d free"] = "%d / %d libres",
-    ["Stacking done (%d merges)."] = "Empilement terminé (%d fusions).",
-});

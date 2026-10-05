@@ -246,24 +246,3 @@ function UF.CreateBar(parent)
 
     return bar;
 end
-
-Grommey.AddTranslations({
-    ["Number and percent"] = "Nombre et pourcentage",
-    ["Number"] = "Nombre",
-    ["Percent"] = "Pourcentage",
-    ["Nothing"] = "Rien",
-    ["White"] = "Blanc",
-    ["Light grey"] = "Gris clair",
-    ["Accent"] = "Couleur du thème",
-    ["Black outline"] = "Contour noir",
-    ["Shadow"] = "Ombre",
-    ["Violet"] = "Violet",
-    ["Fixed colour"] = "Couleur fixe",
-    ["Class colour"] = "Couleur de classe",
-    ["Following morale (green to red)"] = "Selon le moral (vert à rouge)",
-    ["Theme accent"] = "Couleur du thème",
-    ["Level difference"] = "Selon la différence de niveau",
-    ["Morale bar colour"] = "Couleur de la barre de moral",
-    ["Colours"] = "Couleurs",
-    ["None"] = "Aucun",
-});

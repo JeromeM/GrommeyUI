@@ -230,19 +230,21 @@ Grommey.Modules.Register({
     end;
 
     BuildOptions = BuildOptions;
-});
 
-Grommey.AddTranslations({
-    ["Auras"] = "Auras",
-    ["Your buffs and debuffs in two areas of their own, next to the minimap."] = "Tes buffs et débuffs dans deux zones à part, à côté de la minimap.",
-    ["Buffs"] = "Buffs",
-    ["Debuffs"] = "Débuffs",
-    ["Show this area"] = "Afficher cette zone",
-    ["Border colour by type"] = "Contour selon le type",
-    ["New lines"] = "Nouvelles lignes",
-    ["Remaining time"] = "Temps restant",
-    ["Under the icon"] = "Sous l'icône",
-    ["On the icon"] = "Sur l'icône",
-    ["Also show the effects under the player frame"] = "Afficher aussi les effets sous le cadre du joueur",
-    ["Place the areas with the move mode. The game does not let plugins cancel a buff."] = "Place les zones avec le mode déplacement. Le jeu ne permet pas aux plugins d'annuler un buff.",
+    SetupOptions = function(page, width, settings)
+        UI.Toggle(page, 0, 0, width, L("Buffs"), settings.buffs.enabled, function(value) settings.buffs.enabled = value; end);
+        UI.Toggle(page, 0, 34, width, L("Debuffs"), settings.debuffs.enabled, function(value) settings.debuffs.enabled = value; end);
+        UI.Toggle(page, 0, 68, width, L("Border colour by type"), settings.debuffs.colorByType, function(value) settings.debuffs.colorByType = value; end);
+        UI.Toggle(page, 0, 102, width, L("Remaining time under the icon"), settings.buffs.time == "below", function(value)
+            settings.buffs.time = value and "below" or "inside";
+            settings.debuffs.time = settings.buffs.time;
+        end);
+        local unitFrames = Grommey.Modules.Settings("UnitFrames");
+        if (unitFrames ~= nil and unitFrames.player ~= nil) then
+            UI.Toggle(page, 0, 136, width, L("Also show the effects under the player frame"), unitFrames.player.effects.show, function(value)
+                unitFrames.player.effects.show = value;
+            end);
+        end
+        UI.Label(page, 0, 180, width, 36, L("Two areas at the top right, next to the minimap. Place them with the move mode."), { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+    end;
 });

@@ -359,24 +359,3 @@ function UF.EffectsBar:Destroy()
     self:SetUnit(nil);
     HideTooltip();
 end
-
-Grommey.AddTranslations({
-    ["Below"] = "En dessous",
-    ["Above"] = "Au-dessus",
-    ["Left"] = "À gauche",
-    ["Right"] = "À droite",
-    ["Toward the right"] = "Vers la droite",
-    ["Toward the left"] = "Vers la gauche",
-    ["Downward"] = "Vers le bas",
-    ["Upward"] = "Vers le haut",
-    ["Buff"] = "Buff",
-    ["Debuff"] = "Débuff",
-    ["Disease"] = "Maladie",
-    ["Fear"] = "Peur",
-    ["Poison"] = "Poison",
-    ["Wound"] = "Blessure",
-    ["Corruption"] = "Corruption",
-    ["%d h %d min"] = "%d h %d min",
-    ["%d min %d s"] = "%d min %d s",
-    ["%d s"] = "%d s",
-});

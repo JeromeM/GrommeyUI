@@ -397,9 +397,11 @@ end
 
 local selectedBar = nil;
 
-local function NewBar(kind)
-    local number = settingsRoot.nextNumber or (#settingsRoot.bars + 1);
-    settingsRoot.nextNumber = number + 1;
+-- root: the module settings, also usable before the module runs (setup assistant)
+local function NewBar(kind, root)
+    root = root or settingsRoot;
+    local number = root.nextNumber or (#root.bars + 1);
+    root.nextNumber = number + 1;
     local bar = {
         id = "bar" .. number; name = string.format(L("Bar %d"), number); enabled = true;
         slots = 12; perLine = 12; spacing = 2; visibility = "always"; fade = false; showEmpty = false;
@@ -409,8 +411,22 @@ local function NewBar(kind)
         bar.name = L("Consumables");
         bar.hidden = {};
     end
-    table.insert(settingsRoot.bars, bar);
+    table.insert(root.bars, bar);
     return bar;
+end
+
+-- First bar and the consumables bar, made once
+local function EnsureBars(root)
+    -- The bar list is not in the defaults, a deleted first bar would come back
+    if (root.bars == nil) then
+        root.bars = {};
+        NewBar(nil, root);
+    end
+    -- The consumables bar comes once on its own, it can be deleted after that
+    if (not root.consumablesAdded) then
+        root.consumablesAdded = true;
+        if (#root.bars < MAX_BARS) then NewBar("consumables", root); end
+    end
 end
 
 local function Translated(items)
@@ -529,18 +545,8 @@ Grommey.Modules.Register({
         settingsRoot = settings;
         player = Turbine.Gameplay.LocalPlayer.GetInstance();
         shortcuts = Grommey.Storage.Load(Turbine.DataScope.Character, SHORTCUTS_FILE) or {};
-        -- The bar list is not in the defaults, a deleted first bar would come back
-        if (settings.bars == nil) then
-            settings.bars = {};
-            NewBar();
-            Grommey.Profiles.RequestSave();
-        end
-        -- A consumables bar comes once on its own, it can be deleted after that
-        if (not settings.consumablesAdded) then
-            settings.consumablesAdded = true;
-            if (#settings.bars < MAX_BARS) then NewBar("consumables"); end
-            Grommey.Profiles.RequestSave();
-        end
+        EnsureBars(settings);
+        Grommey.Profiles.RequestSave();
         Build();
 
         callbacks = {
@@ -561,30 +567,18 @@ Grommey.Modules.Register({
     end;
 
     BuildOptions = BuildOptions;
-});
 
-Grommey.AddTranslations({
-    ["Action bars"] = "Barres d'action",
-    ["Extra bars for your skills, items and commands, used with the mouse."] = "Barres supplémentaires pour tes compétences, objets et commandes, à la souris.",
-    ["Bar %d"] = "Barre %d",
-    ["Locked"] = "Verrouillées",
-    ["New bar"] = "Nouvelle barre",
-    ["Delete"] = "Supprimer",
-    ["Maximum items"] = "Nombre maximum d'objets",
-    ["Report written to the plugin data folder."] = "Rapport écrit dans le dossier PluginData.",
-    ["Consumables bar: the game refuses item shortcuts."] = "Barre Consommables : le jeu refuse les raccourcis d'objets.",
-    ["Show the hidden items again (%d)"] = "Réafficher les objets masqués (%d)",
-    ["This bar fills itself with the food, potions and scrolls of your backpack, with their total quantity. Unlock the bars and use the cross to hide an item you do not want here."] = "Cette barre se remplit toute seule avec la nourriture, les potions et les parchemins de ton sac, avec leur quantité totale. Déverrouille les barres et utilise la croix pour masquer un objet que tu ne veux pas ici.",
-    ["No bar yet."] = "Aucune barre pour l'instant.",
-    ["Show this bar"] = "Afficher cette barre",
-    ["Show the empty slots"] = "Afficher les emplacements vides",
-    ["Number of slots"] = "Nombre d'emplacements",
-    ["Slots per line"] = "Emplacements par ligne",
-    ["Shown"] = "Affichée",
-    ["Always"] = "Toujours",
-    ["In combat only"] = "En combat seulement",
-    ["Out of combat only"] = "Hors combat seulement",
-    ["With a target"] = "Avec une cible",
-    ["Faded until the mouse is over it"] = "Estompée tant que la souris n'est pas dessus",
-    ["Drag skills, items or chat commands onto the slots. Unlock the bars to see the empty slots and take shortcuts off with the cross. Place the bars with the move mode. The game does not let plugins use keys: these bars are clicked."] = "Glisse des compétences, objets ou commandes sur les emplacements. Déverrouille les barres pour voir les emplacements vides et retirer un raccourci avec la croix. Place les barres avec le mode déplacement. Le jeu ne permet pas aux plugins d'utiliser les touches : ces barres s'utilisent au clic.",
+    SetupOptions = function(page, width, settings)
+        EnsureBars(settings);
+        local y = 0;
+        for _, bar in ipairs(settings.bars) do
+            local text = (bar.kind == "consumables") and L("Consumables bar (fills itself from the backpack)") or bar.name;
+            UI.Toggle(page, 0, y, width, text, bar.enabled, function(value) bar.enabled = value; end);
+            y = y + 34;
+            if (y > 240) then break; end
+        end
+        UI.Toggle(page, 0, y + 10, width, L("Locked (no empty slots or crosses)"), settings.locked, function(value) settings.locked = value; end);
+        UI.Label(page, 0, y + 54, width, 52, L("Drag skills and items onto the bars. These bars are used with the mouse, the game does not let plugins use keys. More bars can be added in the options."),
+            { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+    end;
 });

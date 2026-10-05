@@ -328,47 +328,16 @@ Grommey.Modules.Register({
     end;
 
     BuildOptions = BuildOptions;
-});
 
-Grommey.AddTranslations({
-    ["Unit frames"] = "Cadres d'unités",
-    ["Player, target and party frames, with buffs and debuffs."] = "Cadres du joueur, de la cible et du groupe, avec buffs et débuffs.",
-    ["Player"] = "Joueur",
-    ["Target"] = "Cible",
-    ["Frame"] = "Cadre",
-    ["Place the frames with the move mode."] = "Place les cadres avec le mode déplacement.",
-    ["Show this frame"] = "Afficher ce cadre",
-    ["Copy the player, mirrored"] = "Copier le joueur en miroir",
-    ["Mirrored (right to left)"] = "Miroir (de droite à gauche)",
-    ["Bars"] = "Barres",
-    ["Width"] = "Largeur",
-    ["Name and level"] = "Nom et niveau",
-    ["Morale height"] = "Hauteur du moral",
-    ["Morale text"] = "Texte du moral",
-    ["Power bar"] = "Barre de puissance",
-    ["Power height"] = "Hauteur de la puissance",
-    ["Power text"] = "Texte de la puissance",
-    ["Class resource"] = "Ressource de classe",
-    ["Arrangement"] = "Disposition",
-    ["One under the other"] = "Les uns sous les autres",
-    ["Side by side"] = "Côte à côte",
-    ["Spacing"] = "Espacement",
-    ["Include me"] = "M'inclure",
-    ["Effects"] = "Effets",
-    ["Show buffs and debuffs"] = "Afficher buffs et débuffs",
-    ["Position"] = "Position",
-    ["Direction"] = "Direction",
-    ["Icon size"] = "Taille des icônes",
-    ["Icons per line"] = "Icônes par ligne",
-    ["Maximum icons"] = "Nombre maximum d'icônes",
-    ["Debuffs first"] = "Débuffs en premier",
-    ["Space between icons"] = "Espace entre les icônes",
-    ["Texts"] = "Textes",
-    ["Preview: on"] = "Aperçu : activé",
-    ["Preview: off"] = "Aperçu : désactivé",
-    ["Space between bars"] = "Espace entre les barres",
-    ["Shown with fake units and effects. Also on in move mode."] = "Affiche des unités et des effets fictifs. Aussi actif en mode déplacement.",
-    ["Name and level colour"] = "Couleur du nom et du niveau",
-    ["Bar text colour"] = "Couleur du texte des barres",
-    ["Text style"] = "Style du texte",
+    SetupOptions = function(page, width, settings)
+        local UI = Grommey.UI;
+        UI.Toggle(page, 0, 0, width, L("Player frame"), settings.player.enabled, function(value) settings.player.enabled = value; end);
+        UI.Toggle(page, 0, 34, width, L("Target frame"), settings.target.enabled, function(value) settings.target.enabled = value; end);
+        UI.Toggle(page, 0, 68, width, L("Party frames"), settings.party.enabled, function(value) settings.party.enabled = value; end);
+        UI.Label(page, 0, 112, 300, 18, L("Morale bar colour"));
+        UI.Dropdown(page, 0, 132, 300, Translated(UF.MoraleColorModes), settings.player.moraleColorMode or "fixed", function(value)
+            for _, key in ipairs({ "player", "target", "party" }) do settings[key].moraleColorMode = value; end
+        end);
+        UI.Label(page, 0, 180, width, 36, L("Each frame replaces the game one. Bars, effects and colours are set in the options."), { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+    end;
 });

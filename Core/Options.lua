@@ -24,7 +24,15 @@ local function BuildGeneral(page, width)
     UI.Header(page, 0, y, width, L("General"));
     UI.Label(page, 0, y + 36, width, 40, L("Welcome to GrommeyUI. Pick a theme, then add modules as they come."), { multiline = true; role = "dim"; });
 
-    y = y + 90;
+    -- Language of GrommeyUI, the game texts (items, effects) keep the client language
+    UI.Label(page, 0, y + 84, 260, 18, L("Language"));
+    local languageNote = UI.Label(page, 276, y + 108, width - 276, 22, "", { size = 12; role = "accent"; });
+    UI.Dropdown(page, 0, y + 104, 260, Grommey.LanguageItems(), Grommey.LanguageChoice, function(value)
+        Grommey.SetLanguage(value);
+        languageNote:SetText(L("The language changes after a reload."));
+    end);
+
+    y = y + 160;
     UI.Toggle(page, 0, y, width, L("Show the GrommeyUI button"), Grommey.Profile.launcher.shown, function(value)
         Grommey.Profile.launcher.shown = value;
         Grommey.Launcher.Refresh();
@@ -45,6 +53,11 @@ local function BuildGeneral(page, width)
     end
 
     UI.Button(page, 0, y + 150, 220, L("Reload UI"), function() Grommey.Reload(); end);
+    UI.Button(page, 232, y + 150, 300, L("Start the setup assistant again"), function()
+        window:SetVisible(false);
+        Grommey.Profiles.SetSetupDone(false);
+        Grommey.Setup.Start();
+    end, "accent");
 end
 
 local function BuildTheme(page, width)
@@ -122,6 +135,10 @@ local function BuildTheme(page, width)
         theme.font = value;
         Theme.Changed();
     end);
+    UI.Slider(page, previewX, y + 32, previewWidth, L("Text size"), -2, 4, 1, theme.fontOffset or 0, function(value)
+        theme.fontOffset = value;
+        Theme.Changed();
+    end, " px");
 end
 
 local function BuildProfiles(page, width)

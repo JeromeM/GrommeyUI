@@ -22,6 +22,7 @@ Grommey.Theme.Backgrounds = {
 Grommey.Theme.Fonts = {
     { name = "Verdana"; label = "Modern (Verdana)"; };
     { name = "Trajan";  label = "Middle-earth (Trajan)"; };
+    { name = "BookAntiqua"; label = "Classic (Book Antiqua)"; };
 };
 
 local function GetBackground()
@@ -105,34 +106,59 @@ function Grommey.Theme.Hex(role)
     return string.format("#%02X%02X%02X", colour.r, colour.g, colour.b);
 end
 
--- Font sizes the game actually has, the nearest one is picked
-local FontSizes = {
-    Verdana = { 10, 12, 13, 14, 15, 16, 18, 20, 22, 23 };
-    Trajan = { 13, 14, 15, 16, 18, 19, 20, 21, 23, 24, 25, 26, 28 };
+-- Game font names of each family, regular and bold ("Verdana14", "VerdanaBold16"...)
+local FontFamilies = {
+    Verdana = { regular = "Verdana"; bold = "VerdanaBold"; };
+    Trajan = { regular = "TrajanPro"; bold = "TrajanProBold"; };
+    BookAntiqua = { regular = "BookAntiqua"; bold = "BookAntiquaBold"; };
 };
 
-local function FontByName(name)
-    return Turbine.UI.Lotro.Font[name];
+-- Sizes the game actually has, read from its font list: plugins cannot bring their own fonts
+local FontSizes = {};
+local function SizesOf(prefix)
+    local sizes = {};
+    for name in pairs(Turbine.UI.Lotro.Font or {}) do
+        local size = string.match(name, "^" .. prefix .. "(%d+)$");
+        if (size) then table.insert(sizes, tonumber(size)); end
+    end
+    table.sort(sizes);
+    return sizes;
+end
+-- Known sizes in case the list cannot be read
+local KnownSizes = {
+    Verdana = { regular = { 10, 12, 13, 14, 15, 16, 18, 20, 22, 23 }; bold = { 16 }; };
+    Trajan = { regular = { 13, 14, 15, 16, 18, 19, 20, 21, 23, 24, 25, 26, 28 }; bold = { 16 }; };
+};
+for family, names in pairs(FontFamilies) do
+    FontSizes[family] = { regular = SizesOf(names.regular); bold = SizesOf(names.bold); };
+    local known = KnownSizes[family];
+    if (known and #FontSizes[family].regular == 0) then FontSizes[family] = known; end
+end
+
+local function Nearest(sizes, size)
+    local best = nil;
+    for _, available in ipairs(sizes) do
+        if (best == nil or math.abs(available - size) < math.abs(best - size)) then best = available; end
+    end
+    return best;
 end
 
 function Grommey.Theme.Font(size, bold)
     local family = Grommey.Profile.theme.font;
-    if (FontSizes[family] == nil) then family = "Verdana"; end
+    -- Text size chosen in the theme, on top of the size each control asks for
+    size = size + (Grommey.Profile.theme.fontOffset or 0);
+    if (FontSizes[family] == nil or #FontSizes[family].regular == 0) then family = "Verdana"; end
+    local names, sizes = FontFamilies[family], FontSizes[family];
 
-    if (bold) then
-        local boldFont = nil;
-        if (family == "Verdana") then boldFont = FontByName("VerdanaBold16");
-        else boldFont = FontByName("TrajanProBold16"); end
-        if (boldFont) then return boldFont; end
+    if (bold and #sizes.bold > 0) then
+        -- Verdana has a single bold size (16), it is used for every bold text as before
+        local boldSize = (family == "Verdana") and Nearest(sizes.bold, 16) or Nearest(sizes.bold, size);
+        local font = Turbine.UI.Lotro.Font[names.bold .. boldSize];
+        if (font) then return font; end
     end
 
-    local best = nil;
-    for _, available in ipairs(FontSizes[family]) do
-        if (best == nil or math.abs(available - size) < math.abs(best - size)) then best = available; end
-    end
-
-    local fontName = (family == "Verdana") and ("Verdana" .. best) or ("TrajanPro" .. best);
-    return FontByName(fontName) or Turbine.UI.Lotro.Font.Verdana14;
+    local best = Nearest(sizes.regular, size);
+    return (best and Turbine.UI.Lotro.Font[names.regular .. best]) or Turbine.UI.Lotro.Font.Verdana14;
 end
 
 -- Calls paint now and every time the look changes

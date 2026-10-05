@@ -108,20 +108,13 @@ Grommey.Modules.Register({
     end;
 
     BuildOptions = BuildOptions;
-});
 
-Grommey.AddTranslations({
-    ["All your bags in one window, sorted by category."] = "Tous tes sacs dans une seule fenêtre, triés par catégorie.",
-    ["Items are always sorted by category. Click a category title to fold it."] = "Les objets sont toujours triés par catégorie. Clique sur le titre d'une catégorie pour la replier.",
-    ["Open the bags"] = "Ouvrir les sacs",
-    ["Categories side by side"] = "Catégories côte à côte",
-    ["Sort items by category"] = "Ranger les objets par catégorie",
-    ["Columns without categories"] = "Colonnes sans catégories",
-    ["Items per row"] = "Objets par ligne",
-    ["Slot size"] = "Taille des emplacements",
-    ["Maximum height"] = "Hauteur maximale",
-    ["Show new items in their own section"] = "Afficher les nouveaux objets dans leur propre section",
-    ["Currencies shown at the bottom"] = "Monnaies affichées en bas",
-    ["Your wallet is empty for now."] = "Ton portefeuille est vide pour l'instant.",
-    ["%s is also loaded, unload it to avoid two bag windows: /plugins unload %s"] = "%s est aussi chargé, décharge-le pour éviter deux fenêtres de sacs : /plugins unload %s",
+    SetupOptions = function(page, width, settings)
+        local UI = Grommey.UI;
+        UI.Toggle(page, 0, 0, width, L("Sort items by category"), settings.groupByCategory, function(value) settings.groupByCategory = value; end);
+        UI.Toggle(page, 0, 34, width, L("Show new items in their own section"), settings.showNew, function(value) settings.showNew = value; end);
+        UI.Slider(page, 0, 76, 300, L("Items per row"), 3, 12, 1, settings.itemsPerRow, function(value) settings.itemsPerRow = value; end);
+        UI.Slider(page, 0, 126, 300, L("Slot size"), 36, 48, 2, settings.slotSize, function(value) settings.slotSize = value; end, " px");
+        UI.Label(page, 0, 186, width, 36, L("The bag replaces the game bags. Open it with the usual bag key."), { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+    end;
 });

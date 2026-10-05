@@ -47,33 +47,3 @@ function Grommey.Bags.GetCategoryKey(item)
     local id = item:GetItemInfo():GetCategory();
     return Grommey.Bags.CategoryOfId[id] or "Misc";
 end
-
-Grommey.AddTranslations({
-    ["Quest items"] = "Objets de quête",
-    ["Consumables"] = "Consommables",
-    ["Weapons"] = "Armes",
-    ["Armour"] = "Armures",
-    ["Jewellery"] = "Bijoux",
-    ["Legendary items"] = "Objets légendaires",
-    ["Essences"] = "Essences",
-    ["Class items"] = "Objets de classe",
-    ["Crafting"] = "Artisanat",
-    ["Crafting scrolls"] = "Parchemins d'artisanat",
-    ["Barter"] = "Troc",
-    ["Reputation"] = "Réputation",
-    ["Travel"] = "Voyage",
-    ["Skirmish"] = "Escarmouche",
-    ["Lootboxes"] = "Coffres",
-    ["Deconstructable"] = "Déconstructibles",
-    ["Trophies"] = "Trophées",
-    ["Cosmetics"] = "Cosmétiques",
-    ["Decorations"] = "Décorations",
-    ["Instruments"] = "Instruments",
-    ["Fishing"] = "Pêche",
-    ["Festival"] = "Festival",
-    ["Kinship"] = "Confrérie",
-    ["Social"] = "Social",
-    ["Usable items"] = "Utilisables",
-    ["Tasks"] = "Tâches",
-    ["Miscellaneous"] = "Divers",
-});

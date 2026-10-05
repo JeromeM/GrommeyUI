@@ -15,6 +15,8 @@ Grommey.Defaults = {
         background = "Charcoal";
         opacity = 100;
         font = "Verdana";
+        -- Pixels added to every text size, from -2 to +4
+        fontOffset = 0;
     };
     movers = {
         snap = true;
@@ -66,6 +68,17 @@ end
 -- Saves a moment after the last change, so dragging a slider does not write the file at every step
 function Grommey.Profiles.RequestSave()
     Grommey.Delay("SaveProfiles", 2, Grommey.Profiles.Save);
+end
+
+-- The setup assistant opens once for the whole account
+function Grommey.Profiles.IsSetupDone()
+    return accountData ~= nil and accountData.setupDone == true;
+end
+
+function Grommey.Profiles.SetSetupDone(done)
+    if (accountData == nil) then return; end
+    accountData.setupDone = done;
+    Grommey.Profiles.RequestSave();
 end
 
 function Grommey.Profiles.List()

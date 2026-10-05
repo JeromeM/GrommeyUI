@@ -430,39 +430,21 @@ Grommey.Modules.Register({
     end;
 
     BuildOptions = BuildOptions;
-});
 
-Grommey.AddTranslations({
-    ["Info bar"] = "Barre d'infos",
-    ["Money, currencies, bags, durability, FPS and time along the edge of the screen."] = "Argent, monnaies, sacs, durabilité, FPS et heure sur le bord de l'écran.",
-    ["Money"] = "Argent",
-    ["Currencies"] = "Monnaies",
-    ["Durability"] = "Durabilité",
-    ["Free bag slots"] = "Emplacements des sacs",
-    ["Frames per second"] = "Images par seconde (FPS)",
-    ["Time"] = "Heure",
-    [" g"] = " o",
-    [" s"] = " a",
-    [" c"] = " c",
-    ["Gold, silver and copper"] = "Or, argent et cuivre",
-    ["Gold only"] = "Or seulement",
-    ["Used / total"] = "Occupés / total",
-    ["Average"] = "Moyenne",
-    ["Most worn piece"] = "Pièce la plus usée",
-    ["24 hours"] = "24 heures",
-    ["12 hours"] = "12 heures",
-    ["Elements"] = "Éléments",
-    ["Top bar"] = "Barre du haut",
-    ["Bottom bar"] = "Barre du bas",
-    ["Height"] = "Hauteur",
-    ["Bar"] = "Barre",
-    ["Hidden"] = "Masqué",
-    ["Zone"] = "Zone",
-    ["Centre"] = "Centre",
-    ["Order in the zone"] = "Ordre dans la zone",
-    ["Text size"] = "Taille du texte",
-    ["Show the label"] = "Afficher le libellé",
-    ["Show the icons"] = "Afficher les icônes",
-    ["Format"] = "Format",
-    ["Text colour"] = "Couleur du texte",
+    SetupOptions = function(page, width, settings)
+        local half = math.floor((width - 30) / 2);
+        UI.Toggle(page, 0, 0, half, L("Top bar"), settings.bars.top.enabled, function(value) settings.bars.top.enabled = value; end);
+        UI.Toggle(page, half + 30, 0, half, L("Bottom bar"), settings.bars.bottom.enabled, function(value) settings.bars.bottom.enabled = value; end);
+        UI.Label(page, 0, 44, width, 18, L("Shown elements"), { role = "dim"; });
+        for index, definition in ipairs(Elements) do
+            local element = settings.elements[definition.key];
+            local column = (index - 1) % 2;
+            local row = math.floor((index - 1) / 2);
+            UI.Toggle(page, column * (half + 30), 70 + row * 32, half, L(definition.name), element.bar ~= "hidden", function(value)
+                -- Back on the top bar unless the bottom one is the only one on
+                local onBar = (settings.bars.top.enabled or not settings.bars.bottom.enabled) and "top" or "bottom";
+                element.bar = value and onBar or "hidden";
+            end);
+        end
+    end;
 });
