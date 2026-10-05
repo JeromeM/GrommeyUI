@@ -2,7 +2,9 @@
 -- settings: show, position ("top", "bottom", "left", "right"), growth ("right", "left", "down", "up"),
 --           size (pixels), perLine (icons per line), max (icons shown), debuffsFirst,
 --           filter (nil, "buffs" or "debuffs"), timeBelow (time under the icon instead of on it),
---           colorByType (debuff border coloured by disease, fear, poison or wound)
+--           colorByType (debuff border coloured by disease, fear, poison or wound),
+--           hidden / important (effect name = true: never shown / shown first with a theme border),
+--           hidePermanent (no effects without a duration or lasting an hour or more)
 
 local UF = Grommey.UnitFrames;
 local Theme = Grommey.Theme;
@@ -14,6 +16,8 @@ local DEFAULT_SPACING = 2;
 local ICON_BOX = 34;
 -- Height of the time line when it is shown under the icon
 local TIME_HEIGHT = 14;
+-- Effects lasting this long (or without a duration) count as permanent: traits, class auras...
+local PERMANENT_DURATION = 3600;
 
 UF.EffectPositions = {
     { value = "bottom"; text = "Below"; };
@@ -53,6 +57,7 @@ local TYPE_COLORS = {
 };
 
 local function BorderColor(entry, settings)
+    if (entry.important) then return Theme.Color("accent"); end
     if (not entry.debuff) then return Theme.Color("border"); end
     local categories = Turbine.Gameplay.EffectCategory;
     local category = Read(entry.effect, "GetCategory");
@@ -273,17 +278,24 @@ function UF.EffectsBar:Rebuild()
             local ok, effect = pcall(self.effects.Get, self.effects, index);
             if (ok and effect ~= nil) then
                 local debuff = Read(effect, "IsDebuff") == true;
-                if (settings.filter == nil or (settings.filter == "debuffs") == debuff) then
-                    table.insert(entries, { effect = effect; debuff = debuff; order = index; });
+                local name = Read(effect, "GetName") or "";
+                local duration = Read(effect, "GetDuration") or 0;
+                local permanent = (duration <= 0 or duration >= PERMANENT_DURATION);
+                local wanted = (settings.filter == nil or (settings.filter == "debuffs") == debuff)
+                    and not (settings.hidden and settings.hidden[name])
+                    and not (settings.hidePermanent and permanent);
+                if (wanted) then
+                    local important = (settings.important ~= nil and settings.important[name] == true);
+                    table.insert(entries, { effect = effect; debuff = debuff; important = important; order = index; });
                 end
             end
         end
-        if (settings.debuffsFirst) then
-            table.sort(entries, function(a, b)
-                if (a.debuff ~= b.debuff) then return a.debuff; end
-                return a.order < b.order;
-            end);
-        end
+        -- Important effects first, then debuffs when asked, then the game order
+        table.sort(entries, function(a, b)
+            if (a.important ~= b.important) then return a.important; end
+            if (settings.debuffsFirst and a.debuff ~= b.debuff) then return a.debuff; end
+            return a.order < b.order;
+        end);
     end
 
     local size = ICON_BOX;

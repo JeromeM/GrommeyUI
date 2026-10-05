@@ -32,6 +32,9 @@ local function GridSettings(key)
         timeBelow = (settings.time == "below");
         colorByType = settings.colorByType;
         debuffsFirst = false;
+        hidden = settingsRoot.hidden;
+        important = settingsRoot.important;
+        hidePermanent = settings.hidePermanent;
     };
 end
 
@@ -116,6 +119,83 @@ local function Translated(items)
     return list;
 end
 
+-- Hidden and important effects, by name, for both areas
+local function BuildFilterOptions(page, width, settings, Reopen)
+    local half = math.floor((width - 30) / 2);
+    local right = half + 30;
+    settings.hidden = settings.hidden or {};
+    settings.important = settings.important or {};
+    local function Changed() Grommey.Profiles.RequestSave(); Build(); Reopen(); end
+    local function Toggle(list, name)
+        list[name] = (not list[name]) or nil;
+        -- An effect is either hidden or important
+        if (list[name]) then
+            if (list == settings.hidden) then settings.important[name] = nil; else settings.hidden[name] = nil; end
+        end
+        Changed();
+    end
+
+    -- Effects on the character right now, each can be marked
+    UI.Label(page, 0, 0, half, 20, L("Your effects right now"), { bold = true; role = "accent"; });
+    local names, isDebuff = {}, {};
+    local effects = player and player:GetEffects();
+    for index = 1, (effects and effects:GetCount()) or 0 do
+        local effect = effects:Get(index);
+        local name = effect and effect:GetName();
+        if (name and not isDebuff[name] and not names[name]) then
+            names[name] = true;
+            isDebuff[name] = effect:IsDebuff() == true;
+        end
+    end
+    local sorted = {};
+    for name in pairs(names) do table.insert(sorted, name); end
+    table.sort(sorted);
+    local y = 28;
+    if (#sorted == 0) then
+        UI.Label(page, 0, y, half, 36, L("No effect on you at the moment."), { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+    end
+    local buttonWidth = 76;
+    for _, name in ipairs(sorted) do
+        local label = UI.Label(page, 0, y, half - 2 * (buttonWidth + 6), 26, name, { size = 12; role = isDebuff[name] and "danger" or "text"; });
+        UI.Button(page, half - 2 * buttonWidth - 6, y, buttonWidth, L("Important"), function() Toggle(settings.important, name); end,
+            settings.important[name] and "accent" or nil);
+        UI.Button(page, half - buttonWidth, y, buttonWidth, L("Hide"), function() Toggle(settings.hidden, name); end,
+            settings.hidden[name] and "accent" or nil);
+        y = y + 30;
+        if (y > page:GetHeight() - 30) then break; end
+    end
+
+    -- The two lists, the cross takes a name off
+    local function List(top, title, list)
+        UI.Label(page, right, top, half, 20, title, { bold = true; role = "accent"; });
+        local entries = {};
+        for name in pairs(list) do table.insert(entries, name); end
+        table.sort(entries);
+        local rowY = top + 26;
+        if (#entries == 0) then UI.Label(page, right, rowY, half, 20, L("None"), { size = 12; role = "dim"; }); rowY = rowY + 22; end
+        for _, name in ipairs(entries) do
+            UI.Label(page, right, rowY, half - 26, 22, name, { size = 12; });
+            local remove = UI.Label(page, width - 22, rowY, 22, 22, "x", { role = "danger"; mouse = true; align = Turbine.UI.ContentAlignment.MiddleCenter; });
+            remove.MouseClick = function() list[name] = nil; Changed(); end
+            rowY = rowY + 22;
+        end
+        return rowY;
+    end
+    local listY = List(0, L("Important (shown first)"), settings.important);
+    listY = List(listY + 12, L("Hidden effects"), settings.hidden);
+
+    -- A name typed by hand, for an effect you do not have right now
+    listY = listY + 14;
+    local nameBox = UI.TextInput(page, right, listY, half, "");
+    local addWidth = math.floor((half - 8) / 2);
+    local function Add(list)
+        local name = string.match(nameBox:GetText() or "", "^%s*(.-)%s*$");
+        if (name ~= "" and not list[name]) then Toggle(list, name); end
+    end
+    UI.Button(page, right, listY + 32, addWidth, L("Important"), function() Add(settings.important); end);
+    UI.Button(page, right + addWidth + 8, listY + 32, addWidth, L("Hide"), function() Add(settings.hidden); end);
+end
+
 local function BuildOptions(page, width, settings)
     local half = math.floor((width - 30) / 2);
     local right = half + 30;
@@ -134,10 +214,20 @@ local function BuildOptions(page, width, settings)
     end, preview and "accent" or nil);
 
     local x = 0;
-    for _, key in ipairs(AREA_KEYS) do
-        UI.Button(page, x, 52, 150, (key == "buffs") and L("Buffs") or L("Debuffs"), function() selectedArea = key; Reopen(); end,
-            (selectedArea == key) and "accent" or nil);
+    local sections = { { key = "buffs"; text = L("Buffs"); }, { key = "debuffs"; text = L("Debuffs"); }, { key = "filters"; text = L("Filters"); } };
+    for _, section in ipairs(sections) do
+        UI.Button(page, x, 52, 150, section.text, function() selectedArea = section.key; Reopen(); end,
+            (selectedArea == section.key) and "accent" or nil);
         x = x + 158;
+    end
+
+    if (selectedArea == "filters") then
+        local holder = Turbine.UI.Control();
+        holder:SetParent(page);
+        holder:SetPosition(0, 100);
+        holder:SetSize(width, page:GetHeight() - 100);
+        BuildFilterOptions(holder, width, settings, Reopen);
+        return;
     end
 
     local area = settings[selectedArea];
@@ -146,7 +236,11 @@ local function BuildOptions(page, width, settings)
     if (selectedArea == "debuffs") then
         UI.Toggle(page, right, y, half, L("Border colour by type"), area.colorByType, function(value) area.colorByType = value; Changed(); end);
     end
-    y = y + 40;
+    UI.Toggle(page, 0, y + 32, width, L("Hide permanent effects (no duration or an hour and more)"), area.hidePermanent == true, function(value)
+        area.hidePermanent = value;
+        Changed();
+    end);
+    y = y + 74;
 
     LabeledDropdown(0, y, L("Direction"), {
         { value = "left"; text = "Toward the left"; }, { value = "right"; text = "Toward the right"; },
@@ -189,8 +283,11 @@ Grommey.Modules.Register({
     description = "Your buffs and debuffs in two areas of their own, next to the minimap.";
     enabledByDefault = true;
     defaults = {
-        buffs = { enabled = true; growth = "left"; lines = "down"; perLine = 10; max = 20; spacing = 4; time = "below"; colorByType = false; };
-        debuffs = { enabled = true; growth = "left"; lines = "down"; perLine = 8; max = 8; spacing = 4; time = "below"; colorByType = true; };
+        buffs = { enabled = true; growth = "left"; lines = "down"; perLine = 10; max = 20; spacing = 4; time = "below"; colorByType = false; hidePermanent = false; };
+        debuffs = { enabled = true; growth = "left"; lines = "down"; perLine = 8; max = 8; spacing = 4; time = "below"; colorByType = true; hidePermanent = false; };
+        -- Effect name = true, for both areas
+        hidden = {};
+        important = {};
     };
 
     Enable = function(settings)

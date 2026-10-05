@@ -366,4 +366,15 @@ Grommey.AddTranslations("fr", {
     ["/ h"] = "/ h";
     ["%d h %02d"] = "%d h %02d";
     ["%d min"] = "%d min";
+
+    -- Auras: filters
+    ["Filters"] = "Filtres";
+    ["Hide permanent effects (no duration or an hour and more)"] = "Masquer les effets permanents (sans durée ou d'une heure et plus)";
+    ["Your effects right now"] = "Tes effets actuels";
+    ["No effect on you at the moment."] = "Aucun effet sur toi pour le moment.";
+    ["Important"] = "Important";
+    ["Hide"] = "Masquer";
+    ["Important (shown first)"] = "Importants (affichés en premier)";
+    ["Hidden effects"] = "Masqués";
+    ["Show my money"] = "Afficher mon argent";
 });

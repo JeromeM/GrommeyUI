@@ -20,6 +20,9 @@ local ICON_INSET = 3;
 
 -- Items added this many seconds after loading are the login, not new loot
 local LOGIN_GRACE = 15;
+local PULSE_SPEED = 5;      -- border of the new items, like the game bag
+local CURRENCY_GAP = 18;    -- between two currencies of the footer
+local MONEY_GAP = 28;       -- around the money of the footer
 local STACK_DELAY = 0.3;   -- seconds between two stack merges, the server needs time
 local STACK_MAX_DROPS = 200;
 local STACK_MAX_TRIES = 2;
@@ -40,6 +43,9 @@ function Grommey.Bags.Window:Constructor(settings)
     self.slots = {};
     self.headers = {};
     self.newSlots = {};
+    -- Names of the items the character already has: one coming back to the bag (an item taken
+    -- off when another is put on, a stack growing) is not new
+    self.knownNames = {};
     self.callbacks = {};
     self.createdAt = Turbine.Engine.GetGameTime();
     self.dirty = true;
@@ -48,6 +54,7 @@ function Grommey.Bags.Window:Constructor(settings)
     self:CreateList();
     self:CreateFooter();
     self:CreateSlots();
+    self:RememberItems();
     self:RegisterEvents();
     self:SetupKeys();
 
@@ -62,6 +69,7 @@ function Grommey.Bags.Window:Constructor(settings)
         else
             -- Items stop being "new" once the bag has been seen
             self.newSlots = {};
+            self:SetWantsUpdates(false);
             self.dirty = true;
             UI.ClosePopup();
         end
@@ -160,12 +168,6 @@ function Grommey.Bags.Window:CreateSlot(index)
     slot.dim:SetMouseVisible(false);
     slot.dim:SetVisible(false);
 
-    -- Small dot on new items
-    slot.dot = Turbine.UI.Control();
-    slot.dot:SetParent(slot);
-    slot.dot:SetSize(6, 6);
-    slot.dot:SetMouseVisible(false);
-    slot.dot:SetVisible(false);
 
     -- Number of free slots, only on the free slot
     slot.countLabel = UI.Label(slot, 0, 0, 10, 14, "", { size = 12; bold = true; align = Turbine.UI.ContentAlignment.BottomRight; });
@@ -214,9 +216,6 @@ function Grommey.Bags.Window:PaintSlot(slot, item)
     slot.itemControl:SetItem(item);
     slot.dim:SetSize(size, size);
     slot.dim:SetBackColor(Theme.Color("background", 0.75));
-    slot.dot:SetPosition(size - 8, 2);
-    slot.dot:SetBackColor(Theme.Color("accent"));
-    slot.dot:SetVisible(item ~= nil and self.newSlots[slot.index] == true);
     slot.countLabel:SetSize(size - 4, size - 2);
 
     slot:SetBackColor(Theme.Color("border"));
@@ -398,6 +397,7 @@ function Grommey.Bags.Window:Layout()
     self:ApplySearch();
     self:ResizeToContent(innerWidth, contentHeight);
     self:RefreshFooter();
+    self:UpdatePulse();
 end
 
 -- Every slot in the real order of the bags, empty ones included, without categories
@@ -418,6 +418,7 @@ function Grommey.Bags.Window:LayoutAllBags(size, cell, freeCount)
     self:ApplySearch();
     self:ResizeToContent(innerWidth, contentHeight);
     self:RefreshFooter();
+    self:UpdatePulse();
 end
 
 ------------------------------------------------------------------------------------------------------------------------------------------
@@ -497,7 +498,7 @@ function Grommey.Bags.Window:RefreshFooter()
     for _, control in ipairs(self.currencyControls) do control:SetParent(nil); end
     self.currencyControls = {};
 
-    -- Tracked currencies from right to left
+    -- Tracked currencies from right to left, then the money of the character
     local x = self.footer:GetWidth() - PAD;
     for index = self.wallet:GetSize(), 1, -1 do
         local walletItem = self.wallet:GetItem(index);
@@ -514,9 +515,34 @@ function Grommey.Bags.Window:RefreshFooter()
             icon:SetBlendMode(Turbine.UI.BlendMode.Overlay);
             icon:SetBackground(walletItem:GetSmallImage());
             icon:SetMouseVisible(false);
-            x = x - 10;
+            x = x - CURRENCY_GAP;
             table.insert(self.currencyControls, amount);
             table.insert(self.currencyControls, icon);
+        end
+    end
+
+    -- The money sits in the middle of the space left between the free slots and the currencies,
+    -- with a thin line before the currencies
+    local total = (self.settings.showMoney ~= false) and Grommey.Money.Total();
+    if (total) then
+        local hasCurrencies = (#self.currencyControls > 0);
+        local rightLimit = hasCurrencies and (x + CURRENCY_GAP - MONEY_GAP) or (self.footer:GetWidth() - PAD);
+        local leftLimit = PAD + string.len(self.freeLabel:GetText() or "") * 7 + MONEY_GAP;
+        local text = Grommey.Money.Text(total, false);
+        local visible = string.gsub(text, "<[^>]*>", "");
+        local textWidth = math.floor(string.len(visible) * 7.5) + 6;
+        local left = math.floor((leftLimit + rightLimit - textWidth) / 2);
+        left = math.max(leftLimit, math.min(left, rightLimit - textWidth));
+        local money = UI.Label(self.footer, left, 0, textWidth, FOOTER_HEIGHT, text, { size = 13; markup = true; align = Turbine.UI.ContentAlignment.MiddleCenter; });
+        table.insert(self.currencyControls, money);
+        if (hasCurrencies) then
+            local line = Turbine.UI.Control();
+            line:SetParent(self.footer);
+            line:SetPosition(rightLimit + math.floor(MONEY_GAP / 2), 6);
+            line:SetSize(1, FOOTER_HEIGHT - 12);
+            line:SetBackColor(Theme.Color("border"));
+            line:SetMouseVisible(false);
+            table.insert(self.currencyControls, line);
         end
     end
 end
@@ -608,16 +634,50 @@ end
 ------------------------------------------------------------------------------------------------------------------------------------------
 -- Events
 
+-- Everything in the bag and worn right now is known
+function Grommey.Bags.Window:RememberItems()
+    for index = 1, self.backpack:GetSize() do
+        local item = self.backpack:GetItem(index);
+        if (item ~= nil) then self.knownNames[item:GetName() or ""] = true; end
+    end
+    local ok, equipment = pcall(function() return Turbine.Gameplay.LocalPlayer.GetInstance():GetEquipment(); end);
+    if (ok and equipment) then
+        for index = 1, equipment:GetSize() do
+            local item = equipment:GetItem(index);
+            if (item ~= nil) then self.knownNames[item:GetName() or ""] = true; end
+        end
+    end
+end
+
+-- New items: their border pulses between the border and the theme colour while the bag is open
+function Grommey.Bags.Window:UpdatePulse()
+    local pulsing = self:IsVisible() and next(self.newSlots) ~= nil;
+    self:SetWantsUpdates(pulsing);
+    if (not pulsing) then return; end
+    self.Update = function()
+        local amount = (math.sin(Turbine.Engine.GetGameTime() * PULSE_SPEED) + 1) / 2;
+        local color = Theme.Mix("border", "accent", amount);
+        for index in pairs(self.newSlots) do
+            local slot = self.slots[index];
+            if (slot and slot:IsVisible()) then slot:SetBackColor(color); end
+        end
+    end
+end
+
 function Grommey.Bags.Window:RegisterEvents()
     local function Add(object, eventName, callback)
         table.insert(self.callbacks, { object = object; eventName = eventName; callback = Grommey.AddCallback(object, eventName, callback); });
     end
 
     Add(self.backpack, "ItemAdded", function(sender, args)
-        -- While logging in the game adds every item one by one, they are not new
-        if (Turbine.Engine.GetGameTime() - self.createdAt >= LOGIN_GRACE) then
+        local item = self.backpack:GetItem(args.Index);
+        local name = (item and item:GetName()) or "";
+        -- While logging in the game adds every item one by one, they are not new;
+        -- neither is an item the character already had (taken off, stack growing)
+        if (Turbine.Engine.GetGameTime() - self.createdAt >= LOGIN_GRACE and not self.knownNames[name]) then
             self.newSlots[args.Index] = true;
         end
+        self.knownNames[name] = true;
         self:RequestLayout();
     end);
     Add(self.backpack, "ItemRemoved", function(sender, args)
@@ -634,7 +694,11 @@ function Grommey.Bags.Window:RegisterEvents()
         self:RequestLayout();
     end);
 
-    -- Currency amounts in the footer
+    -- Money and currency amounts in the footer
+    local attributes = Turbine.Gameplay.LocalPlayer.GetInstance():GetAttributes();
+    if (attributes) then
+        Add(attributes, "MoneyChanged", function() if (self:IsVisible()) then self:RefreshFooter(); end end);
+    end
     for index = 1, self.wallet:GetSize() do
         Add(self.wallet:GetItem(index), "QuantityChanged", function()
             if (self:IsVisible()) then self:RefreshFooter(); end

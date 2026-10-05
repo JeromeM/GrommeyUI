@@ -11,6 +11,7 @@ import "GrommeyUI.Core.Events";
 import "GrommeyUI.Core.Storage";
 import "GrommeyUI.Core.Profiles";
 import "GrommeyUI.Core.Theme";
+import "GrommeyUI.Core.Money";
 import "GrommeyUI.Core.Widgets";
 import "GrommeyUI.Core.Window";
 import "GrommeyUI.Core.Movers";

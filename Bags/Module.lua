@@ -52,6 +52,7 @@ local function BuildDisplayOptions(page, width, settings, Changed)
     -- Currencies shown at the bottom of the bag, from the wallet
     y = y + 44;
     UI.Header(page, 0, y, width, L("Currencies shown at the bottom"));
+    UI.Toggle(page, width - 240, y - 2, 240, L("Show my money"), settings.showMoney ~= false, function(value) settings.showMoney = value; Changed(); end);
     local wallet = Turbine.Gameplay.LocalPlayer.GetInstance():GetWallet();
     local names = {};
     for index = 1, wallet:GetSize() do table.insert(names, wallet:GetItem(index):GetName()); end
@@ -230,6 +231,7 @@ Grommey.Modules.Register({
         showNew = true;
         collapsed = {};
         currencies = {};
+        showMoney = true;
         -- Categories of the player and the items in them
         customCategories = {};
         itemCategory = {};

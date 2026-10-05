@@ -28,28 +28,8 @@ end
 ------------------------------------------------------------------------------------------------------------------------------------------
 -- Values: each returns the label and the value text (markup allowed)
 
--- All the money of the character in copper (1 gold = 1000 silver = 100000 copper)
-local function TotalCopper()
-    local attributes = Call(player, "GetAttributes");
-    local copper = Call(attributes, "GetMoney");
-    if (copper ~= nil) then return copper; end
-    local silver, gold;
-    copper, silver, gold = Call(attributes, "GetMoneyComponents");
-    if (gold == nil) then return nil; end
-    return gold * 100000 + silver * 100 + copper;
-end
-
--- 123456 -> "1 g 234 s 56 c" in the coin colours, only gold with goldOnly
-local function MoneyText(total, goldOnly)
-    local gold = math.floor(total / 100000);
-    local silver = math.floor(total / 100) % 1000;
-    local copper = total % 100;
-    if (goldOnly) then return "<rgb=#E8C45C>" .. gold .. L(" g") .. "</rgb>"; end
-    local text = "";
-    if (gold > 0) then text = "<rgb=#E8C45C>" .. gold .. L(" g") .. "</rgb> "; end
-    if (gold > 0 or silver > 0) then text = text .. "<rgb=#C8CCD2>" .. silver .. L(" s") .. "</rgb> "; end
-    return text .. "<rgb=#C88A52>" .. copper .. L(" c") .. "</rgb>";
-end
+local TotalCopper = Grommey.Money.Total;
+local MoneyText = Grommey.Money.Text;
 
 local function Money(element)
     local total = TotalCopper();
