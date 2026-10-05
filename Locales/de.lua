@@ -391,4 +391,5 @@ Grommey.AddTranslations("de", {
     ["A setup assistant, in English, French and German."] = "Ein Einrichtungsassistent, auf Englisch, Französisch und Deutsch.";
     ["This window shows what is new after each update. Open it again from the General page of the options."] = "Dieses Fenster zeigt nach jedem Update die Neuigkeiten. Öffne es erneut über die Seite Allgemein der Optionen.";
     ["Close"] = "Schließen";
+    ["GrommeyUI can now be recognised and updated by LOTRO Plugin Compendium."] = "GrommeyUI kann jetzt von LOTRO Plugin Compendium erkannt und aktualisiert werden.";
 });

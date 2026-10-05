@@ -3,6 +3,9 @@
 -- translations in Locales/*.lua.
 
 Grommey.Changelog = {
+    { version = "1.0.1"; items = {
+        L("GrommeyUI can now be recognised and updated by LOTRO Plugin Compendium.");
+    }; };
     { version = "1.0.0"; items = {
         L("First stable version of GrommeyUI.");
         L("Bags: one window sorted by category, your own categories, search, money and currencies at the bottom.");
