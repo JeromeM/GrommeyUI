@@ -208,6 +208,12 @@ local function BuildProfiles(page, width)
     end, "danger");
 
     status = UI.Label(page, 0, y + 56, width, 22, "", { role = "accent"; });
+
+    -- Profile as a text code, to share it or keep a copy
+    y = y + 92;
+    UI.Header(page, 0, y, width, L("Share"));
+    UI.Button(page, 0, y + 38, 240, L("Export this profile"), function() Grommey.ProfileShare.Show("export"); end, "accent");
+    UI.Button(page, 252, y + 38, 240, L("Import a profile"), function() Grommey.ProfileShare.Show("import"); end);
     if (Grommey.Options.pendingStatus) then
         status:SetText(Grommey.Options.pendingStatus.text);
         if (Grommey.Options.pendingStatus.isError) then status:SetForeColor(Grommey.Theme.Color("danger")); end

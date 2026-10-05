@@ -320,4 +320,21 @@ Grommey.AddTranslations("de", {
     ["Language"] = "Sprache";
     ["Automatic (game language)"] = "Automatisch (Sprache des Spiels)";
     ["The language changes after a reload."] = "Die Sprache ändert sich nach einem Neuladen.";
+
+    -- Profile sharing
+    ["Share"] = "Teilen";
+    ["Export this profile"] = "Dieses Profil exportieren";
+    ["Import a profile"] = "Ein Profil importieren";
+    ["Share a profile"] = "Ein Profil teilen";
+    ["Export"] = "Exportieren";
+    ["Import"] = "Importieren";
+    ["Select all"] = "Alles auswählen";
+    ["Imported"] = "Importiert";
+    ["Name of the new profile"] = "Name des neuen Profils";
+    ["Code of the profile \"%s\". Select it, copy it with Ctrl+C and share it."] = "Code des Profils „%s“. Markiere ihn, kopiere ihn mit Strg+C und teile ihn.";
+    ["Paste a profile code with Ctrl+V. It becomes a new profile, your current ones stay as they are."] = "Füge einen Profilcode mit Strg+V ein. Er wird zu einem neuen Profil, deine bisherigen Profile bleiben unverändert.";
+    ["This is not a GrommeyUI profile code."] = "Das ist kein GrommeyUI-Profilcode.";
+    ["The code is incomplete or changed, copy it again in full."] = "Der Code ist unvollständig oder verändert, kopiere ihn erneut vollständig.";
+    ["The code could not be read."] = "Der Code konnte nicht gelesen werden.";
+    ["Also saved in: PluginData > (account) > AllServers > GrommeyUI_ProfileExport.plugindata"] = "Auch gespeichert in: PluginData > (Konto) > AllServers > GrommeyUI_ProfileExport.plugindata";
 });

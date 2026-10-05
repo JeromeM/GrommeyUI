@@ -126,6 +126,13 @@ function Grommey.Profiles.CopyFrom(name)
     return Grommey.Profiles.Use(Grommey.ProfileName);
 end
 
+-- New profile from shared settings (see ProfileShare), completed with the defaults, and switched to
+function Grommey.Profiles.Import(name, profile)
+    if (name == nil or name == "" or accountData.profiles[name] ~= nil) then return false; end
+    accountData.profiles[name] = Grommey.MergeDefaults(profile, Grommey.Defaults);
+    return Grommey.Profiles.Use(name);
+end
+
 function Grommey.Profiles.Reset()
     accountData.profiles[Grommey.ProfileName] = NewProfile();
     return Grommey.Profiles.Use(Grommey.ProfileName);
