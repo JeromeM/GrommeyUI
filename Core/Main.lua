@@ -8,6 +8,7 @@ import "GrommeyUI.UnitFrames";
 import "GrommeyUI.InfoBar";
 import "GrommeyUI.Auras";
 import "GrommeyUI.ActionBars";
+import "GrommeyUI.Meter";
 
 local RELOADER = "~GrommeyUIReloader";
 
@@ -62,6 +63,8 @@ function Grommey.Command:Execute(command, arguments)
             table.sort(names);
             Grommey.Print("classes: " .. table.concat(names, ", "));
         end
+    elseif (action == "combatlog") then
+        Grommey.Meter.Log.Command(arguments);
     elseif (action == "consumables") then
         if (Grommey.ActionBarsConsumablesReport) then Grommey.ActionBarsConsumablesReport(); end
     elseif (action == "elements") then
@@ -94,6 +97,7 @@ end
 plugin.Unload = function()
     Grommey.Movers.Exit();
     Grommey.Modules.StopAll();
+    Grommey.Meter.Log.Shutdown();
     Grommey.StopDelays();
     Grommey.Profiles.Save();
     pcall(Turbine.Shell.RemoveCommand, Grommey.Command);

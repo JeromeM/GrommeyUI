@@ -392,4 +392,9 @@ Grommey.AddTranslations("fr", {
     ["This window shows what is new after each update. Open it again from the General page of the options."] = "Cette fenêtre montre les nouveautés après chaque mise à jour. Rouvre-la depuis la page Général des options.";
     ["Close"] = "Fermer";
     ["GrommeyUI can now be recognised and updated by LOTRO Plugin Compendium."] = "GrommeyUI peut maintenant être reconnu et mis à jour par LOTRO Plugin Compendium.";
+
+    -- Combat meter: combat log
+    ["Combat log: %d lines, %d read, %d not recognised."] = "Journal de combat : %d lignes, %d lues, %d non reconnues.";
+    ["Combat log: test on. Every combat line is shown here and saved in %s."] = "Journal de combat : test activé. Chaque ligne de combat s'affiche ici et est enregistrée dans %s.";
+    ["Combat log: test off."] = "Journal de combat : test désactivé.";
 });

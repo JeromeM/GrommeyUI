@@ -34,7 +34,9 @@ end
 -- It has a small file of its own for the account: the profiles are not loaded yet.
 local ok, saved = pcall(Turbine.PluginData.Load, Turbine.DataScope.Account, LANGUAGE_FILE);
 Grommey.LanguageChoice = (ok and type(saved) == "table" and saved.language) or "auto";
-Grommey.Language = (Grommey.LanguageChoice == "auto") and GameLanguage() or Grommey.LanguageChoice;
+-- The combat log is always in the language of the client, whatever the choice
+Grommey.GameLanguage = GameLanguage();
+Grommey.Language = (Grommey.LanguageChoice == "auto") and Grommey.GameLanguage or Grommey.LanguageChoice;
 
 -- Saved at once, used after the next reload
 function Grommey.SetLanguage(choice)
