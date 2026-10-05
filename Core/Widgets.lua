@@ -278,6 +278,46 @@ local function GetPopup()
     return popup;
 end
 
+-- Opens the shared popup as a list at a screen position, a second click from the same owner closes it.
+-- items = { { value = ..., text = "..." }, ... }, onPick(value) when one is chosen
+function Grommey.UI.OpenMenu(owner, screenX, screenY, width, items, currentValue, onPick)
+    local menu = GetPopup();
+    if (menu:IsVisible() and menu.owner == owner) then Grommey.UI.ClosePopup(); return; end
+
+    menu.owner = owner;
+    menu.list:ClearItems();
+    local rowHeight = 24;
+    local visibleRows = math.min(#items, 12);
+    for _, item in ipairs(items) do
+        local row = Turbine.UI.Label();
+        row:SetSize(width - 2, rowHeight);
+        row:SetTextAlignment(Align.MiddleLeft);
+        row:SetFont(Theme.Font(14, false));
+        row:SetText("  " .. item.text);
+        local selected = (item.value == currentValue);
+        row:SetForeColor(Theme.Color(selected and "accent" or (item.role or "text")));
+        row:SetBackColor(Theme.Color("raised"));
+        row.MouseEnter = function() row:SetBackColor(Theme.Color("accentSoft")); end
+        row.MouseLeave = function() row:SetBackColor(Theme.Color("raised")); end
+        row.MouseClick = function()
+            Grommey.UI.ClosePopup();
+            if (onPick) then onPick(item.value); end
+        end
+        menu.list:AddItem(row);
+    end
+
+    local height = visibleRows * rowHeight + 2;
+    menu:SetSize(width, height);
+    menu.frame.Resize(width, height);
+    menu.list:SetSize(width - 2, height - 2);
+    -- Kept on the screen
+    local screenWidth, screenHeight = Turbine.UI.Display.GetWidth(), Turbine.UI.Display.GetHeight();
+    if (screenY + height > screenHeight) then screenY = math.max(0, screenY - height - 30); end
+    menu:SetPosition(math.min(screenX, screenWidth - width), screenY);
+    menu:SetVisible(true);
+    menu:Activate();
+end
+
 -- items = { { value = ..., text = "..." }, ... }
 function Grommey.UI.Dropdown(parent, x, y, width, items, currentValue, onChange)
     local dropdown = Grommey.UI.Frame(parent, x, y, width, 26, "raised", "border");
@@ -300,40 +340,11 @@ function Grommey.UI.Dropdown(parent, x, y, width, items, currentValue, onChange)
     dropdown.MouseLeave = function() dropdown.borderRole = "border"; dropdown.Paint(); end
 
     dropdown.MouseClick = function()
-        local menu = GetPopup();
-        if (menu:IsVisible() and menu.owner == dropdown) then Grommey.UI.ClosePopup(); return; end
-
-        menu.owner = dropdown;
-        menu.list:ClearItems();
-        local rowHeight = 24;
-        local visibleRows = math.min(#dropdown.items, 10);
-        for _, item in ipairs(dropdown.items) do
-            local row = Turbine.UI.Label();
-            row:SetSize(width - 2, rowHeight);
-            row:SetTextAlignment(Align.MiddleLeft);
-            row:SetFont(Theme.Font(14, false));
-            row:SetText("  " .. item.text);
-            local selected = (item.value == dropdown.value);
-            row:SetForeColor(Theme.Color(selected and "accent" or "text"));
-            row:SetBackColor(Theme.Color("raised"));
-            row.MouseEnter = function() row:SetBackColor(Theme.Color("accentSoft")); end
-            row.MouseLeave = function() row:SetBackColor(Theme.Color("raised")); end
-            row.MouseClick = function()
-                Grommey.UI.ClosePopup();
-                dropdown:SetValue(item.value);
-                if (onChange) then onChange(item.value); end
-            end
-            menu.list:AddItem(row);
-        end
-
-        local height = visibleRows * rowHeight + 2;
-        menu:SetSize(width, height);
-        menu.frame.Resize(width, height);
-        menu.list:SetSize(width - 2, height - 2);
         local screenX, screenY = Grommey.UI.ScreenPosition(dropdown);
-        menu:SetPosition(screenX, screenY + 27);
-        menu:SetVisible(true);
-        menu:Activate();
+        Grommey.UI.OpenMenu(dropdown, screenX, screenY + 27, width, dropdown.items, dropdown.value, function(value)
+            dropdown:SetValue(value);
+            if (onChange) then onChange(value); end
+        end);
     end
 
     dropdown.SetValue = function(_, value) dropdown.value = value; label:SetText(TextOf(value)); end

@@ -453,22 +453,51 @@ end
 
 ------------------------------------------------------------------------------------------------
 
--- Colours and other tags of the chat removed, spaces trimmed
+-- Colours and other tags of the chat removed, spaces trimmed. The game sometimes writes the
+-- typographic apostrophe (l’Ours): it becomes a plain one, for the articles and for the bold fonts
+-- that do not have it.
 function Parser.Clean(message)
     local line = gsub(message or "", "<rgb=#%x+>", "");
     line = gsub(line, "</rgb>", "");
+    line = gsub(line, "\226\128[\152\153]", "'");
     return Trim(line);
 end
 
 -- language: "en", "fr" or "de" (the language of the game client, not the one of GrommeyUI)
 -- you: name of the player, used by the lines that say "you"
+-- Attacks without a skill are written with an article and in lower case ("une attaque au corps à
+-- corps faible", "a melee attack"): they become one "auto-attack" skill, melee or ranged.
+Parser.AUTO_ATTACK = "*auto";
+Parser.AUTO_ATTACK_RANGED = "*autoRanged";
+
+local AUTO_ATTACKS = {
+    en = { article = { "^an? " }; melee = "melee"; ranged = "ranged"; };
+    fr = { article = { "^une? " }; melee = "corps à corps"; ranged = "distance"; };
+    de = { article = { "^eine[mn]? ", "^ein " }; melee = "Nahkampf"; ranged = "Fernkampf"; };
+};
+
+local function AutoAttack(skill, language)
+    if (skill == nil) then return nil; end
+    local words = AUTO_ATTACKS[language] or AUTO_ATTACKS.en;
+    for _, article in ipairs(words.article) do
+        if (find(skill, article)) then
+            if (find(skill, words.ranged, 1, true)) then return Parser.AUTO_ATTACK_RANGED; end
+            if (find(skill, words.melee, 1, true)) then return Parser.AUTO_ATTACK; end
+        end
+    end
+    return skill;
+end
+
 function Parser.Parse(line, language, you)
     local list = rules[language] or rules.en;
     for _, rule in ipairs(list) do
         local parts = { match(line, rule[1]) };
         if (parts[1] ~= nil) then
             local ok, event = pcall(rule[2], you, unpack(parts));
-            if (ok and event ~= nil) then return event; end
+            if (ok and event ~= nil) then
+                event.skill = AutoAttack(event.skill, language);
+                return event;
+            end
             -- A line that looks like this rule but does not fit is not one of the next rules either
             return nil;
         end

@@ -63,6 +63,8 @@ function Grommey.Command:Execute(command, arguments)
             table.sort(names);
             Grommey.Print("classes: " .. table.concat(names, ", "));
         end
+    elseif (action == "meter") then
+        Grommey.Meter.Command(arguments);
     elseif (action == "combatlog") then
         Grommey.Meter.Log.Command(arguments);
     elseif (action == "consumables") then
@@ -82,7 +84,7 @@ function Grommey.Command:Execute(command, arguments)
 end
 
 function Grommey.Command:GetHelp()
-    return "/gui [move | reload | reset | elements]";
+    return "/gui [move | reload | reset | elements | meter]";
 end
 
 function Grommey.Command:GetShortHelp()

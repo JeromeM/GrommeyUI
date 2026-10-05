@@ -22,6 +22,9 @@ INDIRECT = {
     "Automatic (game language)",                          # Core/Locale.lua
 }
 
+# Texts given to L() directly: always meant to be shown, even short ones ("DPS", "crit")
+LITERALS = set()
+
 def code_texts():
     texts = set()
     for path in glob.glob(os.path.join(ROOT, "**", "*.lua"), recursive=True):
@@ -30,7 +33,9 @@ def code_texts():
         source = open(path, encoding="utf-8").read()
         # Comments hold examples, not texts
         source = re.sub(r"--[^\n]*", "", source)
-        texts.update(re.findall(r'\bL\(\s*' + STRING + r'\s*\)', source))
+        literals = re.findall(r'\bL\(\s*' + STRING + r'\s*\)', source)
+        texts.update(literals)
+        LITERALS.update(literals)
         for line in source.split("\n"):
             # Language names and font ids are shown as they are
             if "code =" in line or "label =" in line and "name =" in line:
@@ -49,7 +54,7 @@ def main():
         language = os.path.splitext(os.path.basename(path))[0]
         known = translations(path)
         # Field values that are not meant to be shown (ids, keys) are left out of "missing"
-        missing = sorted(text for text in texts if text not in known and re.search(r"[a-z] |^[A-Z][a-z]", text))
+        missing = sorted(text for text in texts if text not in known and (text in LITERALS or re.search(r"[a-z] |^[A-Z][a-z]", text)))
         unused = sorted(text for text in known if text not in texts)
         print("== %s: %d translations, %d missing, %d unused" % (language, len(known), len(missing), len(unused)))
         for text in missing:
