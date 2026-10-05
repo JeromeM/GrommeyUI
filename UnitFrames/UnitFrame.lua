@@ -6,6 +6,15 @@ local UF = Grommey.UnitFrames;
 local REFRESH_DELAY = 0.1;  -- bars
 local TIMES_DELAY = 0.5;    -- effect durations
 local EFFECTS_GAP = 4;      -- space between the bars and the effects
+local UNIT_CHECK_DELAY = 0.25;  -- target of target
+
+-- Name and level of a unit, to see when another one takes its place
+local function UnitSignature(unit)
+    if (unit == nil) then return ""; end
+    local okName, name = pcall(unit.GetName, unit);
+    local okLevel, level = pcall(unit.GetLevel, unit);
+    return tostring(okName and name) .. "#" .. tostring(okLevel and level);
+end
 
 UF.UnitFrame = class(Turbine.UI.Window);
 
@@ -34,6 +43,11 @@ function UF.UnitFrame:Constructor(key, name, settings, getUnit, defaultX, defaul
         if (now >= self.nextTimes) then
             self.nextTimes = now + TIMES_DELAY;
             self.effects:UpdateTimes();
+        end
+        -- The game sends no event when the target changes its own target: look a few times a second
+        if (key == "targettarget" and now >= (self.nextCheck or 0)) then
+            self.nextCheck = now + UNIT_CHECK_DELAY;
+            if (UnitSignature(self.getUnit()) ~= self.shownSignature) then self:UpdateUnit(); end
         end
     end
 
@@ -88,10 +102,12 @@ end
 -- Takes the unit again (target changed) and shows the frame only when there is one
 function UF.UnitFrame:UpdateUnit()
     local unit = self.getUnit();
+    self.shownSignature = UnitSignature(unit);
     local effectsUnit = unit;
     if (UF.Preview) then
         -- Fake target when nothing is selected, fake effects to set up the icons
         if (unit == nil and self.key == "target") then unit = UF.DummyTarget; end
+        if (unit == nil and self.key == "targettarget") then unit = UF.DummyParty[3]; end
         effectsUnit = UF.DummyEffectsUnit();
     end
     self.panel:SetUnit(unit);

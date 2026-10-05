@@ -10,6 +10,9 @@ local player = nil;
 local targetCallback = nil;
 local previewBeforeMove = false;
 
+-- Every frame of the module, in the order they are built
+local FRAME_KEYS = { "player", "target", "targettarget", "party" };
+
 -- Game window replaced by each frame
 local NativeElement = { player = "Vitals"; target = "Target"; party = "Party"; };
 
@@ -32,6 +35,17 @@ local function CreateFrame(key)
         frames.target = UF.UnitFrame("target", L("Target"), settings,
             function() return player:GetTarget(); end,
             function() return math.floor(ScreenWidth() / 2) + 140; end,
+            function() return math.floor(ScreenHeight() * 0.68); end);
+    elseif (key == "targettarget") then
+        -- The target of the target, when the game tells it (the frame stays hidden otherwise)
+        frames.targettarget = UF.UnitFrame("targettarget", L("Target of target"), settings,
+            function()
+                local target = player:GetTarget();
+                if (target == nil or target.GetTarget == nil) then return nil; end
+                local ok, unit = pcall(target.GetTarget, target);
+                return ok and unit or nil;
+            end,
+            function() return math.floor(ScreenWidth() / 2) + 140 + settingsRoot.target.width + 12; end,
             function() return math.floor(ScreenHeight() * 0.68); end);
     elseif (key == "party") then
         frames.party = UF.PartyFrames(settings,
@@ -74,6 +88,7 @@ end
 local FrameChoices = {
     { value = "player"; text = "Player"; };
     { value = "target"; text = "Target"; };
+    { value = "targettarget"; text = "Target of target"; };
     { value = "party"; text = "Party"; };
 };
 
@@ -116,6 +131,10 @@ local function BuildFrameOptions(page, width, key, section)
             end, "accent");
         end
         UI.Toggle(page, 0, y + 30, half, L("Mirrored (right to left)"), settings.mirrored, function(value) settings.mirrored = value; Changed(); end);
+        if (key == "targettarget") then
+            UI.Label(page, right, y, half, 52, L("Shown when the game tells who your target is targeting. If it never shows up, the game does not give it."),
+                { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+        end
 
         -- Left column: size and name
         y = 76;
@@ -266,6 +285,13 @@ Grommey.Modules.Register({
             nameColor = "white"; textColor = "white"; textStyle = "outline";
             effects = EffectDefaults("bottom", "left");
         };
+        targettarget = {
+            enabled = true; mirrored = false; width = 160; showName = true;
+            moraleHeight = 14; moraleText = "percent"; showPower = false; powerHeight = 6; powerText = "none";
+            showResource = false; resourceHeight = 8; barGap = 2;
+            nameColor = "white"; textColor = "white"; textStyle = "outline";
+            effects = { show = false; position = "bottom"; growth = "right"; size = 26; perLine = 6; max = 6; debuffsFirst = true; };
+        };
         party = {
             enabled = true; mirrored = false; width = 180; showName = true;
             moraleHeight = 18; moraleText = "percent"; showPower = true; powerHeight = 6; powerText = "none";
@@ -277,17 +303,18 @@ Grommey.Modules.Register({
     Enable = function(settings)
         settingsRoot = settings;
         player = Turbine.Gameplay.LocalPlayer.GetInstance();
-        for _, key in ipairs({ "player", "target", "party" }) do
+        for _, key in ipairs(FRAME_KEYS) do
             if (settings[key].enabled) then CreateFrame(key); end
         end
 
         targetCallback = Grommey.AddCallback(player, "TargetChanged", function()
             if (frames.target) then frames.target:UpdateUnit(); end
+            if (frames.targettarget) then frames.targettarget:UpdateUnit(); end
         end);
 
         -- Preview on or off: every frame takes its units again
         Grommey.On("UnitFramesPreviewChanged", function()
-            for _, key in ipairs({ "player", "target", "party" }) do
+            for _, key in ipairs(FRAME_KEYS) do
                 if (frames[key]) then
                     if (key == "party") then frames.party:CheckMembers(true); else frames[key]:UpdateUnit(); end
                 end
@@ -306,25 +333,26 @@ Grommey.Modules.Register({
 
         -- Another module changed these settings (the auras hide the player effects)
         Grommey.On("UnitFramesSettingsChanged", function()
-            for _, key in ipairs({ "player", "target", "party" }) do Apply(key); end
+            for _, key in ipairs(FRAME_KEYS) do Apply(key); end
         end);
 
         -- A new accent colour reaches the texts that use it
         Grommey.On("ThemeChanged", function()
-            for _, key in ipairs({ "player", "target", "party" }) do if (frames[key]) then Apply(key); end end
+            for _, key in ipairs(FRAME_KEYS) do if (frames[key]) then Apply(key); end end
         end);
 
         -- Hiding the interface (F12) hides the frames too
         Grommey.On("HudToggled", function()
             if (frames.player) then frames.player:UpdateUnit(); end
             if (frames.target) then frames.target:UpdateUnit(); end
+            if (frames.targettarget) then frames.targettarget:UpdateUnit(); end
             if (frames.party) then frames.party:CheckMembers(true); end
         end);
     end;
 
     Disable = function()
         if (targetCallback) then Grommey.RemoveCallback(player, "TargetChanged", targetCallback); targetCallback = nil; end
-        for _, key in ipairs({ "player", "target", "party" }) do DestroyFrame(key); end
+        for _, key in ipairs(FRAME_KEYS) do DestroyFrame(key); end
     end;
 
     BuildOptions = BuildOptions;
@@ -333,11 +361,12 @@ Grommey.Modules.Register({
         local UI = Grommey.UI;
         UI.Toggle(page, 0, 0, width, L("Player frame"), settings.player.enabled, function(value) settings.player.enabled = value; end);
         UI.Toggle(page, 0, 34, width, L("Target frame"), settings.target.enabled, function(value) settings.target.enabled = value; end);
-        UI.Toggle(page, 0, 68, width, L("Party frames"), settings.party.enabled, function(value) settings.party.enabled = value; end);
-        UI.Label(page, 0, 112, 300, 18, L("Morale bar colour"));
-        UI.Dropdown(page, 0, 132, 300, Translated(UF.MoraleColorModes), settings.player.moraleColorMode or "fixed", function(value)
-            for _, key in ipairs({ "player", "target", "party" }) do settings[key].moraleColorMode = value; end
+        UI.Toggle(page, 0, 68, width, L("Target of target"), settings.targettarget.enabled, function(value) settings.targettarget.enabled = value; end);
+        UI.Toggle(page, 0, 102, width, L("Party frames"), settings.party.enabled, function(value) settings.party.enabled = value; end);
+        UI.Label(page, 0, 146, 300, 18, L("Morale bar colour"));
+        UI.Dropdown(page, 0, 166, 300, Translated(UF.MoraleColorModes), settings.player.moraleColorMode or "fixed", function(value)
+            for _, key in ipairs(FRAME_KEYS) do settings[key].moraleColorMode = value; end
         end);
-        UI.Label(page, 0, 180, width, 36, L("Each frame replaces the game one. Bars, effects and colours are set in the options."), { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+        UI.Label(page, 0, 214, width, 36, L("Each frame replaces the game one. Bars, effects and colours are set in the options."), { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
     end;
 });

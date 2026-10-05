@@ -346,4 +346,8 @@ Grommey.AddTranslations("de", {
     ["No category yet. Give it a name and create it."] = "Noch keine Kategorie. Gib ihr einen Namen und erstelle sie.";
     ["Drag an item here to put it in this category. You can also drop it on a category title in the bag."] = "Ziehe einen Gegenstand hierher, um ihn in diese Kategorie zu legen. Du kannst ihn auch auf einen Kategorietitel in der Tasche ziehen.";
     ["No item in this category yet."] = "Noch kein Gegenstand in dieser Kategorie.";
+
+    -- Unit frames: target of target
+    ["Target of target"] = "Ziel des Ziels";
+    ["Shown when the game tells who your target is targeting. If it never shows up, the game does not give it."] = "Erscheint, wenn das Spiel verrät, wen dein Ziel anvisiert. Erscheint es nie, gibt das Spiel diese Information nicht.";
 });
