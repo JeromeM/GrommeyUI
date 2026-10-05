@@ -1,0 +1,34 @@
+[SIZE="4"][B]GrommeyUI[/B][/SIZE]
+A clean, modern all-in-one interface for The Lord of the Rings Online: flat, opaque frames, one accent colour, and everything can be set and moved where you want.
+
+[B]Features[/B]
+[LIST]
+[*][B]Bags[/B]: all your bags in one window, sorted by category, with your own categories, search, new items, money and currencies.
+[*][B]Unit frames[/B]: player, target, target of target and party frames replacing the game ones, with buffs and debuffs. Click a frame to target.
+[*][B]Info bar[/B]: money, currencies, bag slots, durability, FPS, time, session time and money, character.
+[*][B]Auras[/B]: your buffs and debuffs in two areas next to the minimap, with detailed tooltips, important and hidden effects.
+[*][B]Action bars[/B]: extra bars for skills, items and commands, and a consumables bar that fills itself from your backpack.
+[*][B]Themes[/B]: six accent colours, three backgrounds, three fonts and a text size.
+[*][B]Profiles[/B]: shared between characters, exported and imported as a text code.
+[*][B]Move mode[/B]: drag every frame where you want, with a grid and snapping.
+[*][B]Setup assistant[/B] on first launch, and a What's new window after each update.
+[*]In [B]English, French and German[/B].
+[/LIST]
+
+[B]Installation[/B]
+Unzip the file into [I]Documents\The Lord of the Rings Online\Plugins\[/I]: it holds the [I]GrommeyUI[/I] folder, nothing to rename. In game, load [B]GrommeyUI[/B] from the plugin manager or type [I]/plugins load GrommeyUI[/I]. Do not load [I]~GrommeyUIReloader[/I] yourself: GrommeyUI uses it to reload itself.
+
+[B]Commands[/B]
+[LIST]
+[*][I]/gui[/I]: open or close the options
+[*][I]/gui move[/I]: move the frames
+[*][I]/gui reload[/I]: reload the interface
+[*][I]/gui reset[/I]: put every frame back in place
+[/LIST]
+
+Source code and bug reports: [URL="https://github.com/JeromeM/GrommeyUI"]github.com/JeromeM/GrommeyUI[/URL]
+
+[SIZE="3"][B]Français[/B][/SIZE]
+Une interface moderne et épurée pour Le Seigneur des Anneaux Online : fenêtres plates et opaques, une couleur de thème, et tout se règle et se place où on veut. Sacs regroupés et triés par catégorie (avec tes propres catégories), cadres joueur / cible / cible de la cible / groupe, barre d'infos, auras près de la minimap, barres d'action avec une barre de consommables automatique, thèmes, profils partageables par code, mode déplacement, assistant de configuration. En anglais, français et allemand.
+
+[B]Installation[/B] : décompresser le fichier dans [I]Documents\The Lord of the Rings Online\Plugins\[/I] (il contient le dossier [I]GrommeyUI[/I], rien à renommer), puis charger [B]GrommeyUI[/B] dans le gestionnaire de plugins du jeu ou taper [I]/plugins load GrommeyUI[/I].

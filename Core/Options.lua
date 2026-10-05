@@ -58,6 +58,7 @@ local function BuildGeneral(page, width)
         Grommey.Profiles.SetSetupDone(false);
         Grommey.Setup.Start();
     end, "accent");
+    UI.Button(page, 0, y + 186, 220, L("What's new"), function() Grommey.WhatsNew.Show(nil); end);
 end
 
 local function BuildTheme(page, width)

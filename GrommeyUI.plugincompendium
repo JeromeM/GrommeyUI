@@ -1,0 +1,14 @@
+<PluginConfig>
+  <Id>0</Id>
+  <Name>GrommeyUI</Name>
+  <Version>1.0.0</Version>
+  <Author>Grommey</Author>
+  <InfoUrl>https://www.lotrointerface.com/downloads/info0</InfoUrl>
+  <DownloadUrl>https://www.lotrointerface.com/downloads/download0</DownloadUrl>
+  <Descriptors>
+    <descriptor>GrommeyUI\GrommeyUI.plugin</descriptor>
+    <descriptor>GrommeyUI\GrommeyUIReloader.plugin</descriptor>
+  </Descriptors>
+  <Dependencies />
+  <StartupScript />
+</PluginConfig>

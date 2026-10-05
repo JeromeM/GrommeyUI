@@ -377,4 +377,18 @@ Grommey.AddTranslations("de", {
     ["Important (shown first)"] = "Wichtig (zuerst angezeigt)";
     ["Hidden effects"] = "Ausgeblendet";
     ["Show my money"] = "Mein Geld anzeigen";
+
+    -- What's new
+    ["What's new"] = "Neuigkeiten";
+    ["Version %s"] = "Version %s";
+    ["First stable version of GrommeyUI."] = "Erste stabile Version von GrommeyUI.";
+    ["Bags: one window sorted by category, your own categories, search, money and currencies at the bottom."] = "Taschen: ein einziges Fenster nach Kategorie sortiert, eigene Kategorien, Suche, Geld und Währungen unten.";
+    ["Unit frames: player, target, target of target and party, click a frame to target."] = "Einheitenfenster: Spieler, Ziel, Ziel des Ziels und Gruppe, Klick auf ein Fenster wählt es als Ziel.";
+    ["Info bar: money, currencies, bags, durability, FPS, time, session and character."] = "Infoleiste: Geld, Währungen, Taschen, Haltbarkeit, FPS, Uhrzeit, Sitzung und Charakter.";
+    ["Auras: buffs and debuffs next to the minimap, with important and hidden effects."] = "Auren: Buffs und Debuffs neben der Minikarte, mit wichtigen und ausgeblendeten Effekten.";
+    ["Action bars: extra bars, and a consumables bar that fills itself from your backpack."] = "Aktionsleisten: zusätzliche Leisten und eine Verbrauchsgüter-Leiste, die sich selbst aus deiner Tasche füllt.";
+    ["Themes, fonts and text size, profiles to export and import."] = "Designs, Schriften und Textgröße, Profile zum Exportieren und Importieren.";
+    ["A setup assistant, in English, French and German."] = "Ein Einrichtungsassistent, auf Englisch, Französisch und Deutsch.";
+    ["This window shows what is new after each update. Open it again from the General page of the options."] = "Dieses Fenster zeigt nach jedem Update die Neuigkeiten. Öffne es erneut über die Seite Allgemein der Optionen.";
+    ["Close"] = "Schließen";
 });

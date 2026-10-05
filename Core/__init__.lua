@@ -20,3 +20,4 @@ import "GrommeyUI.Core.Launcher";
 import "GrommeyUI.Core.Options";
 import "GrommeyUI.Core.Setup";
 import "GrommeyUI.Core.ProfileShare";
+import "GrommeyUI.Core.Changelog";

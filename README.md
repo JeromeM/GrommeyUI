@@ -25,8 +25,8 @@ A clean, modern all-in-one interface for **The Lord of the Rings Online**: flat,
 
 ## Installation
 
-1. Download the code (green **Code** button, then **Download ZIP**) and unzip it.
-2. Rename the folder to `GrommeyUI` and put it in `Documents\The Lord of the Rings Online\Plugins\`.
+1. Download **GrommeyUI-x.y.z.zip** from the [latest release](https://github.com/JeromeM/GrommeyUI/releases/latest) (or from LoTROInterface).
+2. Unzip it into `Documents\The Lord of the Rings Online\Plugins\`: it holds the `GrommeyUI` folder, nothing to rename.
 3. In game, load **GrommeyUI** from the plugin manager, or type `/plugins load GrommeyUI`.
 
 Do not load `~GrommeyUIReloader` yourself: GrommeyUI uses it to reload itself.
@@ -45,6 +45,10 @@ Do not load `~GrommeyUIReloader` yourself: GrommeyUI uses it to reload itself.
 Texts are written in English in the code and translated in `Locales/fr.lua` and `Locales/de.lua`.
 `python3 tools/check_translations.py` lists the missing and unused translations.
 
+## License
+
+[MIT](LICENSE)
+
 ---
 
 ## Français
@@ -53,6 +57,6 @@ Une interface moderne et épurée pour **Le Seigneur des Anneaux Online** : fen�
 
 **Contenu** : sacs regroupés et triés par catégorie, cadres joueur / cible / groupe, barre d'infos, auras près de la minimap, barres d'action (dont une barre de consommables automatique), thèmes, profils partageables par code, mode déplacement et assistant de configuration. En anglais, français et allemand.
 
-**Installation** : télécharger le code (**Code** › **Download ZIP**), renommer le dossier en `GrommeyUI`, le placer dans `Documents\The Lord of the Rings Online\Plugins\`, puis charger **GrommeyUI** dans le gestionnaire de plugins du jeu (ou `/plugins load GrommeyUI`). Ne pas charger `~GrommeyUIReloader` à la main.
+**Installation** : télécharger **GrommeyUI-x.y.z.zip** dans la [dernière version](https://github.com/JeromeM/GrommeyUI/releases/latest) (ou sur LoTROInterface), le décompresser dans `Documents\The Lord of the Rings Online\Plugins\` (il contient le dossier `GrommeyUI`, rien à renommer), puis charger **GrommeyUI** dans le gestionnaire de plugins du jeu (ou `/plugins load GrommeyUI`). Ne pas charger `~GrommeyUIReloader` à la main.
 
 **Commandes** : `/gui` (options), `/gui move` (déplacer), `/gui reload` (recharger), `/gui reset` (tout remettre en place).

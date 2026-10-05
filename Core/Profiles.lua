@@ -81,6 +81,17 @@ function Grommey.Profiles.SetSetupDone(done)
     Grommey.Profiles.RequestSave();
 end
 
+-- Last version whose changes were shown on this account (What's new window)
+function Grommey.Profiles.GetSeenVersion()
+    return accountData and accountData.seenVersion;
+end
+
+function Grommey.Profiles.SetSeenVersion(version)
+    if (accountData == nil) then return; end
+    accountData.seenVersion = version;
+    Grommey.Profiles.RequestSave();
+end
+
 function Grommey.Profiles.List()
     local names = {};
     for name, _ in pairs(accountData.profiles) do table.insert(names, name); end
