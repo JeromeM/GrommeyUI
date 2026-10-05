@@ -350,4 +350,20 @@ Grommey.AddTranslations("de", {
     -- Unit frames: target of target
     ["Target of target"] = "Ziel des Ziels";
     ["Shown when the game tells who your target is targeting. If it never shows up, the game does not give it."] = "Erscheint, wenn das Spiel verrät, wen dein Ziel anvisiert. Erscheint es nie, gibt das Spiel diese Information nicht.";
+
+    -- Info bar: session, memory, character
+    ["Session time"] = "Sitzungsdauer";
+    ["Money of the session"] = "Geld der Sitzung";
+    ["GrommeyUI memory"] = "GrommeyUI-Speicher";
+    ["Character"] = "Charakter";
+    ["Since the login"] = "Seit dem Einloggen";
+    ["Per hour"] = "Pro Stunde";
+    ["Name only"] = "Nur Name";
+    ["Session"] = "Sitzung";
+    ["Gained"] = "Gewinn";
+    ["Memory"] = "Speicher";
+    [" MB"] = " MB";
+    ["/ h"] = "/ Std.";
+    ["%d h %02d"] = "%d Std. %02d";
+    ["%d min"] = "%d Min.";
 });

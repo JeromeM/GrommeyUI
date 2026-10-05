@@ -1,6 +1,6 @@
 -- Info bars: up to two bars (top and bottom of the screen), each with a left, centre and right zone.
--- Every element (money, currencies, bags, durability, FPS, time) chooses its bar, zone, order,
--- label, colour, text size, outline and value format.
+-- Every element (money, currencies, bags, durability, FPS, time, session time and money, memory,
+-- character) chooses its bar, zone, order, label, colour, text size, outline and value format.
 
 local Theme = Grommey.Theme;
 local UI = Grommey.UI;
@@ -8,11 +8,15 @@ local UI = Grommey.UI;
 local PAD = 12;
 local SEPARATOR_GAP = 10;
 local UPDATE_DELAY = 1;
+-- A session goes on after a reload of the interface, a break longer than this starts a new one
+local SESSION_BREAK = 600;
+local SESSION_FILE = "GrommeyUI_Session";
 
 local bars = {};          -- "top" / "bottom" = window
 local settingsRoot = nil;
 local player = nil;
 local frames, frameStart, fps = 0, 0, 0;
+local session = nil;        -- { start = local time, money = copper at the start, seen = last check }
 
 local function Call(object, method, ...)
     if (object == nil or object[method] == nil) then return nil; end
@@ -24,23 +28,105 @@ end
 ------------------------------------------------------------------------------------------------------------------------------------------
 -- Values: each returns the label and the value text (markup allowed)
 
-local function Money(element)
+-- All the money of the character in copper (1 gold = 1000 silver = 100000 copper)
+local function TotalCopper()
     local attributes = Call(player, "GetAttributes");
     local copper = Call(attributes, "GetMoney");
-    local gold, silver;
-    if (copper ~= nil) then
-        gold = math.floor(copper / 100000);
-        silver = math.floor(copper / 100) % 1000;
-        copper = copper % 100;
-    else
-        copper, silver, gold = Call(attributes, "GetMoneyComponents");
-        if (gold == nil) then return nil; end
-    end
-    if (element.format == "gold") then return L("Money"), "<rgb=#E8C45C>" .. gold .. L(" g") .. "</rgb>"; end
+    if (copper ~= nil) then return copper; end
+    local silver, gold;
+    copper, silver, gold = Call(attributes, "GetMoneyComponents");
+    if (gold == nil) then return nil; end
+    return gold * 100000 + silver * 100 + copper;
+end
+
+-- 123456 -> "1 g 234 s 56 c" in the coin colours, only gold with goldOnly
+local function MoneyText(total, goldOnly)
+    local gold = math.floor(total / 100000);
+    local silver = math.floor(total / 100) % 1000;
+    local copper = total % 100;
+    if (goldOnly) then return "<rgb=#E8C45C>" .. gold .. L(" g") .. "</rgb>"; end
     local text = "";
     if (gold > 0) then text = "<rgb=#E8C45C>" .. gold .. L(" g") .. "</rgb> "; end
     if (gold > 0 or silver > 0) then text = text .. "<rgb=#C8CCD2>" .. silver .. L(" s") .. "</rgb> "; end
-    return L("Money"), text .. "<rgb=#C88A52>" .. copper .. L(" c") .. "</rgb>";
+    return text .. "<rgb=#C88A52>" .. copper .. L(" c") .. "</rgb>";
+end
+
+local function Money(element)
+    local total = TotalCopper();
+    if (total == nil) then return nil; end
+    return L("Money"), MoneyText(total, element.format == "gold");
+end
+
+local function Now()
+    local ok, time = pcall(Turbine.Engine.GetLocalTime);
+    if (ok and time) then return time; end
+    return Turbine.Engine.GetGameTime();
+end
+
+-- Starts or goes on with the session of this character, kept in a small file of the character
+local function LoadSession()
+    local ok, saved = pcall(Turbine.PluginData.Load, Turbine.DataScope.Character, SESSION_FILE);
+    local now = Now();
+    if (ok and type(saved) == "table" and tonumber(saved.seen) and now - tonumber(saved.seen) < SESSION_BREAK) then
+        session = { start = tonumber(saved.start) or now; money = tonumber(saved.money); seen = now; };
+    else
+        session = { start = now; money = TotalCopper(); seen = now; };
+    end
+end
+
+local function SaveSession()
+    if (session == nil) then return; end
+    session.seen = Now();
+    -- Whole numbers only, as text: French and German clients write decimals with a comma
+    pcall(Turbine.PluginData.Save, Turbine.DataScope.Character, SESSION_FILE, {
+        start = tostring(math.floor(session.start)); money = session.money and tostring(session.money); seen = tostring(math.floor(session.seen));
+    });
+end
+
+-- 5040 -> "1 h 24", 300 -> "5 min"
+local function DurationText(seconds)
+    seconds = math.max(0, math.floor(seconds));
+    local hours = math.floor(seconds / 3600);
+    local minutes = math.floor(seconds / 60) % 60;
+    if (hours > 0) then return string.format(L("%d h %02d"), hours, minutes); end
+    return string.format(L("%d min"), minutes);
+end
+
+local function SessionTime()
+    if (session == nil) then return nil; end
+    return L("Session"), DurationText(Now() - session.start);
+end
+
+local function SessionMoney(element)
+    local total = TotalCopper();
+    if (session == nil or total == nil) then return nil; end
+    if (session.money == nil) then session.money = total; end
+    local gained = total - session.money;
+    if (element.format == "hour") then
+        local hours = math.max((Now() - session.start) / 3600, 1 / 60);
+        gained = math.floor(gained / hours);
+    end
+    local sign = (gained < 0) and "-" or "+";
+    local color = (gained < 0) and "#FF6060" or "#7CD67C";
+    local text = "<rgb=" .. color .. ">" .. sign .. "</rgb> " .. MoneyText(math.abs(gained), false);
+    if (element.format == "hour") then text = text .. " " .. L("/ h"); end
+    return L("Gained"), text;
+end
+
+-- Memory used by the Lua of GrommeyUI, "3,2 MB" with the decimal mark of the language
+local function Memory()
+    local tenths = math.floor(collectgarbage("count") / 1024 * 10 + 0.5);
+    local mark = (Grommey.Language == "en") and "." or ",";
+    return L("Memory"), math.floor(tenths / 10) .. mark .. (tenths % 10) .. L(" MB");
+end
+
+local function Character(element)
+    local name = Call(player, "GetName") or "";
+    if (element.format == "name") then return L("Character"), name; end
+    -- "Duntguiff - 6", the level in the theme colour
+    local level = Call(player, "GetLevel");
+    if (level == nil) then return L("Character"), name; end
+    return L("Character"), name .. " - <rgb=" .. Theme.Hex("accent") .. ">" .. level .. "</rgb>";
 end
 
 local function Durability(element)
@@ -101,10 +187,15 @@ local Elements = {
     { key = "durability"; name = "Durability"; value = Durability; formats = { { value = "average"; text = "Average"; }, { value = "worst"; text = "Most worn piece"; } }; };
     { key = "fps"; name = "Frames per second"; value = Fps; };
     { key = "clock"; name = "Time"; value = Clock; formats = { { value = "24h"; text = "24 hours"; }, { value = "12h"; text = "12 hours"; } }; };
+    { key = "sessionTime"; name = "Session time"; value = SessionTime; };
+    { key = "sessionMoney"; name = "Money of the session"; value = SessionMoney; formats = { { value = "total"; text = "Since the login"; }, { value = "hour"; text = "Per hour"; } }; };
+    { key = "memory"; name = "GrommeyUI memory"; value = Memory; };
+    { key = "character"; name = "Character"; value = Character; formats = { { value = "nameLevel"; text = "Name and level"; }, { value = "name"; text = "Name only"; } }; };
 };
 
 local function Clicked(key)
     if (key == "bags" and Grommey.Bags.Instance) then Grommey.Bags.Instance:Toggle(); end
+    if (key == "character") then Grommey.Options.Toggle(); end
 end
 
 ------------------------------------------------------------------------------------------------------------------------------------------
@@ -164,9 +255,9 @@ local function BuildElement(bar, definition, element, height)
     if (valueText == nil) then return parts; end
     local text = element.label and ("<rgb=" .. Theme.Hex("dim") .. ">" .. labelText .. "</rgb> " .. valueText) or valueText;
     local label, width = AddLabel(bar, text, element, height);
-    if (definition.key == "bags") then
+    if (definition.key == "bags" or definition.key == "character") then
         label:SetMouseVisible(true);
-        label.MouseClick = function() Clicked("bags"); end
+        label.MouseClick = function() Clicked(definition.key); end
     end
     table.insert(parts, { control = label; width = width; });
     return parts;
@@ -280,7 +371,12 @@ local function Build()
                 fps = math.floor(frames / (now - frameStart) + 0.5);
                 frames, frameStart = 0, now;
             end
-            if (now >= nextUpdate) then nextUpdate = now + UPDATE_DELAY; RefreshAll(); end
+            if (now >= nextUpdate) then
+                nextUpdate = now + UPDATE_DELAY;
+                RefreshAll();
+                -- The session is written once a minute, a reload keeps it
+                if (session and Now() - session.seen >= 60) then SaveSession(); end
+            end
         end
     end
     RefreshAll();
@@ -411,6 +507,10 @@ Grommey.Modules.Register({
             durability = ElementDefaults("top", "right", 2, true, "average");
             fps = ElementDefaults("top", "right", 3, true, nil);
             clock = ElementDefaults("top", "right", 4, false, "24h");
+            character = ElementDefaults("top", "center", 1, false, "nameLevel");
+            sessionTime = ElementDefaults("top", "center", 2, true, nil);
+            sessionMoney = ElementDefaults("top", "center", 3, true, "total");
+            memory = ElementDefaults("top", "right", 5, true, nil);
         };
         currencies = {};
     };
@@ -419,12 +519,15 @@ Grommey.Modules.Register({
         settingsRoot = settings;
         player = Turbine.Gameplay.LocalPlayer.GetInstance();
         frameStart = Turbine.Engine.GetGameTime();
+        LoadSession();
+        SaveSession();
         Build();
         Grommey.On("HudToggled", function() for _, bar in pairs(bars) do bar:SetVisible(not Grommey.HudHidden); end end);
         Grommey.On("ThemeChanged", function() if (settingsRoot) then Build(); end end);
     end;
 
     Disable = function()
+        SaveSession();
         DestroyBars();
         settingsRoot = nil;
     end;

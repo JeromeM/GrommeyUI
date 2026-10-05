@@ -36,10 +36,10 @@ function Grommey.Launcher.Create()
         end
     end
 
-    -- Default place: top right, under the minimap area
+    -- Default place: bottom right, clear of the info bar along the top of the screen
     Grommey.Movers.Register("launcher", button, L("GrommeyUI button"),
-        function() return Turbine.UI.Display.GetWidth() - SIZE - 260; end,
-        function() return 12; end);
+        function() return Turbine.UI.Display.GetWidth() - SIZE - 110; end,
+        function() return Turbine.UI.Display.GetHeight() - SIZE - 12; end);
 
     Grommey.Launcher.Refresh();
     Grommey.On("ProfileChanged", Grommey.Launcher.Refresh);
