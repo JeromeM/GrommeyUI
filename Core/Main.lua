@@ -6,6 +6,8 @@ import "GrommeyUI.Core";
 import "GrommeyUI.Bags";
 import "GrommeyUI.UnitFrames";
 import "GrommeyUI.InfoBar";
+import "GrommeyUI.Auras";
+import "GrommeyUI.ActionBars";
 
 local RELOADER = "~GrommeyUIReloader";
 
@@ -55,6 +57,8 @@ function Grommey.Command:Execute(command, arguments)
             table.sort(names);
             Grommey.Print("classes: " .. table.concat(names, ", "));
         end
+    elseif (action == "consumables") then
+        if (Grommey.ActionBarsConsumablesReport) then Grommey.ActionBarsConsumablesReport(); end
     elseif (action == "elements") then
         -- Game windows a plugin is allowed to switch off
         local names = {};

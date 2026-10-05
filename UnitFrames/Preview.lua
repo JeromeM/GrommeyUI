@@ -38,6 +38,7 @@ local function DummyEffects(count)
         local start = now;
         effects[index] = {
             GetName = function() return string.format(L("Test effect %d"), index); end;
+            GetDescription = function() return L("Fake effect to set up the icons. The real description of the buff or debuff is shown here."); end;
             GetPreviewColor = function()
                 if (index % 3 == 0) then return DEBUFF_COLOR; end
                 return BUFF_COLORS[(index - 1) % #BUFF_COLORS + 1];
@@ -80,5 +81,6 @@ end
 
 Grommey.AddTranslations({
     ["Test effect %d"] = "Effet de test %d",
+    ["Fake effect to set up the icons. The real description of the buff or debuff is shown here."] = "Effet fictif pour régler les icônes. La vraie description du buff ou du débuff s'affiche ici.",
     ["Training dummy"] = "Mannequin d'entraînement",
 });

@@ -304,6 +304,11 @@ Grommey.Modules.Register({
             end
         end);
 
+        -- Another module changed these settings (the auras hide the player effects)
+        Grommey.On("UnitFramesSettingsChanged", function()
+            for _, key in ipairs({ "player", "target", "party" }) do Apply(key); end
+        end);
+
         -- A new accent colour reaches the texts that use it
         Grommey.On("ThemeChanged", function()
             for _, key in ipairs({ "player", "target", "party" }) do if (frames[key]) then Apply(key); end end
