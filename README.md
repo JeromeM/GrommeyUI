@@ -6,8 +6,10 @@ A clean, modern all-in-one interface for **The Lord of the Rings Online**: flat,
 
 | | |
 |:---:|:---:|
-| ![Screenshot 1](docs/screenshots/screenshot-1.png) | ![Screenshot 2](docs/screenshots/screenshot-2.png) |
-| ![Screenshot 3](docs/screenshots/screenshot-3.png) | ![Screenshot 4](docs/screenshots/screenshot-4.png) |
+| ![In game](docs/screenshots/Capture1.png) | ![Move mode](docs/screenshots/Capture2.png) |
+| In game | Move mode |
+| ![Options](docs/screenshots/Capture3.png) | ![Bags](docs/screenshots/Capture4.png) |
+| Options | Bags |
 
 ## Features
 
