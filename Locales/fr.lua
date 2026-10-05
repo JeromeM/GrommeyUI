@@ -135,7 +135,6 @@ Grommey.AddTranslations("fr", {
     -- Bags: options
     ["The bag replaces the game bags. Open it with the usual bag key."] = "Le sac remplace les sacs du jeu. Ouvre-le avec la touche habituelle des sacs.";
     ["All your bags in one window, sorted by category."] = "Tous tes sacs dans une seule fenêtre, triés par catégorie.";
-    ["Items are always sorted by category. Click a category title to fold it."] = "Les objets sont toujours triés par catégorie. Clique sur le titre d'une catégorie pour la replier.";
     ["Open the bags"] = "Ouvrir les sacs";
     ["Categories side by side"] = "Catégories côte à côte";
     ["Sort items by category"] = "Ranger les objets par catégorie";
@@ -337,4 +336,14 @@ Grommey.AddTranslations("fr", {
     ["The code is incomplete or changed, copy it again in full."] = "Le code est incomplet ou modifié, copie-le à nouveau en entier.";
     ["The code could not be read."] = "Le code n'a pas pu être lu.";
     ["Also saved in: PluginData > (account) > AllServers > GrommeyUI_ProfileExport.plugindata"] = "Aussi enregistré dans : PluginData > (compte) > AllServers > GrommeyUI_ProfileExport.plugindata";
+
+    -- Bags: custom categories
+    ["Display"] = "Affichage";
+    ["My categories"] = "Mes catégories";
+    ["Rename"] = "Renommer";
+    ["Move up"] = "Monter";
+    ["Move down"] = "Descendre";
+    ["No category yet. Give it a name and create it."] = "Aucune catégorie pour l'instant. Donne-lui un nom et crée-la.";
+    ["Drag an item here to put it in this category. You can also drop it on a category title in the bag."] = "Glisse un objet ici pour le ranger dans cette catégorie. Tu peux aussi le déposer sur le titre d'une catégorie dans le sac.";
+    ["No item in this category yet."] = "Aucun objet dans cette catégorie pour l'instant.";
 });

@@ -238,6 +238,10 @@ function Grommey.Bags.Window:GetHeader(key, title)
         header.line:SetMouseVisible(false);
         Theme.Track(function() header.line:SetBackColor(Theme.Color("border")); end);
 
+        -- An item dropped on a title goes into that category (a game category takes it back)
+        header:SetAllowDrop(true);
+        header.DragDrop = function(sender, args) self:DropOnHeader(key, args); end
+
         -- Click a title to fold or unfold its section
         header.MouseClick = function()
             local collapsed = self.settings.collapsed;
@@ -262,6 +266,20 @@ local function SortSlots(window, indices)
         if (names[a] ~= names[b]) then return names[a] < names[b]; end
         return a < b;
     end);
+end
+
+-- Item dropped on a category title: into a category of the player, or back to its game category
+function Grommey.Bags.Window:DropOnHeader(key, args)
+    local ok, shortcut = pcall(function() return args.DragDropInfo:GetShortcut(); end);
+    local item = ok and shortcut and shortcut.GetItem and shortcut:GetItem();
+    local name = item and item:GetName();
+    if (name == nil or key == "New" or key == "Free") then return; end
+    local settings = self.settings;
+    settings.itemCategory = settings.itemCategory or {};
+    local id = string.match(key, "^custom:(.+)$");
+    settings.itemCategory[name] = id;
+    Grommey.Profiles.RequestSave();
+    self:RequestLayout();
 end
 
 function Grommey.Bags.Window:RequestLayout()
@@ -295,7 +313,7 @@ function Grommey.Bags.Window:Layout()
         slot.countLabel:SetVisible(false);
         self:PaintSlot(slot, item);
         if (item ~= nil) then
-            local key = Grommey.Bags.GetCategoryKey(item);
+            local key = Grommey.Bags.CustomKey(settings, item) or Grommey.Bags.GetCategoryKey(item);
             if (settings.showNew and self.newSlots[index]) then key = "New"; end
             groups[key] = groups[key] or {};
             table.insert(groups[key], index);
@@ -312,6 +330,11 @@ function Grommey.Bags.Window:Layout()
     -- Sections in display order, the free slots come last as a single slot
     local sections = {};
     if (groups["New"]) then table.insert(sections, { key = "New"; title = L("New items"); indices = groups["New"]; }); end
+    -- The player's categories first, shown even empty so items can be dropped on them
+    for _, category in ipairs(settings.customCategories or {}) do
+        local key = "custom:" .. category.id;
+        table.insert(sections, { key = key; title = category.name; indices = groups[key] or {}; });
+    end
     for _, category in ipairs(Grommey.Bags.Categories) do
         if (groups[category.key]) then table.insert(sections, { key = category.key; title = L(category.name); indices = groups[category.key]; }); end
     end

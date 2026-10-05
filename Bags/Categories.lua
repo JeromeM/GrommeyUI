@@ -43,6 +43,22 @@ for position, category in ipairs(Grommey.Bags.Categories) do
     for _, id in ipairs(category.ids) do Grommey.Bags.CategoryOfId[id] = category.key; end
 end
 
+-- Categories made by the player: settings.customCategories = { { id, name }, ... } in display order,
+-- settings.itemCategory = { item name = category id }
+function Grommey.Bags.FindCustom(settings, id)
+    for position, category in ipairs(settings.customCategories or {}) do
+        if (category.id == id) then return category, position; end
+    end
+    return nil;
+end
+
+-- "custom:<id>" when the player put this item in one of their categories
+function Grommey.Bags.CustomKey(settings, item)
+    local id = (settings.itemCategory or {})[item:GetName() or ""];
+    if (id ~= nil and Grommey.Bags.FindCustom(settings, id)) then return "custom:" .. id; end
+    return nil;
+end
+
 function Grommey.Bags.GetCategoryKey(item)
     local id = item:GetItemInfo():GetCategory();
     return Grommey.Bags.CategoryOfId[id] or "Misc";

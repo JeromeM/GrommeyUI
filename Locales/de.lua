@@ -135,7 +135,6 @@ Grommey.AddTranslations("de", {
     -- Bags: options
     ["The bag replaces the game bags. Open it with the usual bag key."] = "Die Tasche ersetzt die Taschen des Spiels. Öffne sie mit der üblichen Taschentaste.";
     ["All your bags in one window, sorted by category."] = "Alle Taschen in einem Fenster, nach Kategorie sortiert.";
-    ["Items are always sorted by category. Click a category title to fold it."] = "Gegenstände sind immer nach Kategorie sortiert. Klicke auf einen Kategorietitel, um ihn einzuklappen.";
     ["Open the bags"] = "Taschen öffnen";
     ["Categories side by side"] = "Kategorien nebeneinander";
     ["Sort items by category"] = "Gegenstände nach Kategorie sortieren";
@@ -337,4 +336,14 @@ Grommey.AddTranslations("de", {
     ["The code is incomplete or changed, copy it again in full."] = "Der Code ist unvollständig oder verändert, kopiere ihn erneut vollständig.";
     ["The code could not be read."] = "Der Code konnte nicht gelesen werden.";
     ["Also saved in: PluginData > (account) > AllServers > GrommeyUI_ProfileExport.plugindata"] = "Auch gespeichert in: PluginData > (Konto) > AllServers > GrommeyUI_ProfileExport.plugindata";
+
+    -- Bags: custom categories
+    ["Display"] = "Anzeige";
+    ["My categories"] = "Meine Kategorien";
+    ["Rename"] = "Umbenennen";
+    ["Move up"] = "Nach oben";
+    ["Move down"] = "Nach unten";
+    ["No category yet. Give it a name and create it."] = "Noch keine Kategorie. Gib ihr einen Namen und erstelle sie.";
+    ["Drag an item here to put it in this category. You can also drop it on a category title in the bag."] = "Ziehe einen Gegenstand hierher, um ihn in diese Kategorie zu legen. Du kannst ihn auch auf einen Kategorietitel in der Tasche ziehen.";
+    ["No item in this category yet."] = "Noch kein Gegenstand in dieser Kategorie.";
 });
