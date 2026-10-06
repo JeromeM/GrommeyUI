@@ -3,11 +3,13 @@ A clean, modern all-in-one interface for The Lord of the Rings Online: flat, opa
 
 [B]Features[/B]
 [LIST]
-[*][B]Bags[/B]: all your bags in one window, sorted by category, with your own categories, search, new items, money and currencies.
-[*][B]Unit frames[/B]: player, target, target of target and party frames replacing the game ones, with buffs and debuffs. Click a frame to target.
+[*][B]Bags[/B]: all your bags in one window, sorted by category, with your own categories (hold Shift while dragging an item to drop it into any category), search, new items, money and currencies.
+[*][B]Unit frames[/B]: player, target, target of target and party frames replacing the game ones, with buffs and debuffs, the class resource of every class and power bars you can place anywhere. Click a frame to target.
 [*][B]Info bar[/B]: money, currencies, bag slots, durability, FPS, time, session time and money, character.
 [*][B]Auras[/B]: your buffs and debuffs in two areas next to the minimap, with detailed tooltips, important and hidden effects.
-[*][B]Action bars[/B]: extra bars for skills, items and commands, and a consumables bar that fills itself from your backpack.
+[*][B]Timer bars[/B]: your buffs and debuffs as bars that empty as they run out, with their own filters.
+[*][B]Buff reminders[/B]: a warning when a buff you chose is missing or about to end.
+[*][B]Action bars[/B]: extra bars for skills, items and commands, a consumables bar that fills itself from your backpack and a travel bar with your travel skills and mounts.
 [*][B]Combat meter[/B]: replaces Combat Analysis for your character. Damage done and taken, enemies, healing and power, fight by fight: key figures, bars by skill or target, a summary and a detail window with every counter. Fights are kept between reloads.
 [*][B]Themes[/B]: six accent colours, three backgrounds, three fonts and a text size.
 [*][B]Profiles[/B]: shared between characters, exported and imported as a text code.
@@ -31,11 +33,21 @@ Unzip the file into [I]Documents\The Lord of the Rings Online\Plugins\[/I]: it h
 Source code and bug reports: [URL="https://github.com/JeromeM/GrommeyUI"]github.com/JeromeM/GrommeyUI[/URL]
 
 [SIZE="3"][B]Français[/B][/SIZE]
-Une interface moderne et épurée pour Le Seigneur des Anneaux Online : fenêtres plates et opaques, une couleur de thème, et tout se règle et se place où on veut. Sacs regroupés et triés par catégorie (avec tes propres catégories), cadres joueur / cible / cible de la cible / groupe, barre d'infos, auras près de la minimap, barres d'action avec une barre de consommables automatique, compteur de combat pour remplacer Combat Analysis, thèmes, profils partageables par code, mode déplacement, assistant de configuration. En anglais, français et allemand.
+Une interface moderne et épurée pour Le Seigneur des Anneaux Online : fenêtres plates et opaques, une couleur de thème, et tout se règle et se place où on veut. Sacs regroupés et triés par catégorie (avec tes propres catégories), cadres joueur / cible / cible de la cible / groupe, barre d'infos, auras près de la minimap, barres de temps des buffs et débuffs, rappels de buffs, barres d'action avec une barre de consommables automatique et une barre Voyage, compteur de combat pour remplacer Combat Analysis, thèmes, profils partageables par code, mode déplacement, assistant de configuration. En anglais, français et allemand.
 
 [B]Installation[/B] : décompresser le fichier dans [I]Documents\The Lord of the Rings Online\Plugins\[/I] (il contient le dossier [I]GrommeyUI[/I], rien à renommer), puis charger [B]GrommeyUI[/B] dans le gestionnaire de plugins du jeu ou taper [I]/plugins load GrommeyUI[/I].
 
 [SIZE="3"][B]Changelog[/B][/SIZE]
+[B]1.2.0[/B]
+[LIST]
+[*]New module: Timer bars. Your buffs and debuffs as bars that empty as they run out, with the name and the time left, and their own filters (all except hidden ones, or only the effects you choose).
+[*]New module: Buff reminders. A warning when a buff you chose is missing or about to end, as icons or a list, with a chat message if you want.
+[*]Unit frames: the class resource of every class (fervour, focus, attunement...), power and resource bars you can place anywhere, and bars that glide to their new value.
+[*]Action bars: a Travel bar with the travel skills and mounts of your character, and your own order for the consumables bar.
+[*]Bags: hold Shift while dragging an item to drop it into any category. Your empty categories only show up then.
+[*]Combat meter: the damage of your pets, added to yours or shown apart.
+[*]Options: a bigger window, a menu in categories you can fold, and clearer help notes. Areas keep their place when they change size.
+[/LIST]
 [B]1.1.1[/B]
 [LIST]
 [*]Fixes an "invalid key to 'next'" error that could show up after using an item of the bag.

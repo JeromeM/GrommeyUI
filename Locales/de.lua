@@ -626,4 +626,12 @@ Grommey.AddTranslations("de", {
     ["Interface"] = "Oberfläche";
     ["Buffs and debuffs"] = "Buffs und Debuffs";
     ["Combat"] = "Kampf";
+    -- What's new 1.2.0
+    ["New module: Timer bars. Your buffs and debuffs as bars that empty as they run out, with the name and the time left, and their own filters (all except hidden ones, or only the effects you choose)."] = "Neues Modul: Zeitleisten. Deine Buffs und Debuffs als Leisten, die sich mit der Zeit leeren, mit Name und Restzeit und eigenen Filtern (alle außer den ausgeblendeten oder nur die gewählten Effekte).";
+    ["New module: Buff reminders. A warning when a buff you chose is missing or about to end, as icons or a list, with a chat message if you want."] = "Neues Modul: Buff-Erinnerungen. Eine Warnung, wenn ein gewählter Buff fehlt oder bald endet, als Symbole oder Liste, auf Wunsch mit einer Chatnachricht.";
+    ["Unit frames: the class resource of every class (fervour, focus, attunement...), power and resource bars you can place anywhere, and bars that glide to their new value."] = "Einheitenrahmen: die Klassenressource jeder Klasse (Inbrunst, Fokus, Einstimmung...), Kraft- und Ressourcenleisten, die du frei platzieren kannst, und Leisten, die sanft zum neuen Wert gleiten.";
+    ["Action bars: a Travel bar with the travel skills and mounts of your character, and your own order for the consumables bar."] = "Aktionsleisten: eine Reiseleiste mit den Reisefertigkeiten und Reittieren deines Charakters und eine eigene Reihenfolge für die Verbrauchsgüterleiste.";
+    ["Bags: hold Shift while dragging an item to drop it into any category. Your empty categories only show up then."] = "Taschen: halte Umschalt beim Ziehen eines Gegenstands, um ihn in eine beliebige Kategorie zu legen. Deine leeren Kategorien erscheinen nur dann.";
+    ["Combat meter: the damage of your pets, added to yours or shown apart."] = "Kampfmesser: der Schaden deiner Begleiter, zu deinem addiert oder getrennt angezeigt.";
+    ["Options: a bigger window, a menu in categories you can fold, and clearer help notes. Areas keep their place when they change size."] = "Optionen: ein größeres Fenster, ein Menü in einklappbaren Kategorien und klarere Hilfetexte. Bereiche behalten ihren Platz, wenn sich ihre Größe ändert.";
 });

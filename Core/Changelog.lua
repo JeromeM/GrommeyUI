@@ -3,6 +3,15 @@
 -- translations in Locales/*.lua.
 
 Grommey.Changelog = {
+    { version = "1.2.0"; items = {
+        L("New module: Timer bars. Your buffs and debuffs as bars that empty as they run out, with the name and the time left, and their own filters (all except hidden ones, or only the effects you choose).");
+        L("New module: Buff reminders. A warning when a buff you chose is missing or about to end, as icons or a list, with a chat message if you want.");
+        L("Unit frames: the class resource of every class (fervour, focus, attunement...), power and resource bars you can place anywhere, and bars that glide to their new value.");
+        L("Action bars: a Travel bar with the travel skills and mounts of your character, and your own order for the consumables bar.");
+        L("Bags: hold Shift while dragging an item to drop it into any category. Your empty categories only show up then.");
+        L("Combat meter: the damage of your pets, added to yours or shown apart.");
+        L("Options: a bigger window, a menu in categories you can fold, and clearer help notes. Areas keep their place when they change size.");
+    }; };
     { version = "1.1.1"; items = {
         L("Fixes an \"invalid key to 'next'\" error that could show up after using an item of the bag.");
     }; };

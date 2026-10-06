@@ -13,11 +13,13 @@ A clean, modern all-in-one interface for **The Lord of the Rings Online**: flat,
 
 ## Features
 
-- **Bags**: all your bags in one window, sorted by category, with search, new items and currencies.
-- **Unit frames**: player, target and party frames replacing the game ones, with buffs and debuffs.
+- **Bags**: all your bags in one window, sorted by category, with your own categories (hold Shift while dragging an item to drop it into any category), search, new items and currencies.
+- **Unit frames**: player, target and party frames replacing the game ones, with buffs and debuffs, the class resource of every class and power bars you can place anywhere.
 - **Info bar**: money, currencies, bag slots, durability, FPS and time along the edge of the screen.
 - **Auras**: your buffs and debuffs in two areas of their own, next to the minimap, with detailed tooltips.
-- **Action bars**: extra bars for skills, items and commands, and a consumables bar that fills itself from your backpack.
+- **Timer bars**: your buffs and debuffs as bars that empty as they run out, with their own filters.
+- **Buff reminders**: a warning when a buff you chose is missing or about to end.
+- **Action bars**: extra bars for skills, items and commands, a consumables bar that fills itself from your backpack and a travel bar with your travel skills and mounts.
 - **Combat meter**: replaces Combat Analysis for your character. Damage done and taken, enemies, healing and power, fight by fight, with key figures, bars by skill or target, a summary and a detail window with every counter (critical hits, average, avoidance, damage types). Fights are kept between reloads.
 - **Themes**: six accent colours, three backgrounds, three fonts and a text size.
 - **Profiles**: shared between characters, with export / import as a text code.
@@ -62,7 +64,7 @@ The travel skills of the travel bar (ids, icons and names in English, French and
 
 Une interface moderne et épurée pour **Le Seigneur des Anneaux Online** : fenêtres plates et opaques, une couleur de thème, et tout se règle et se place où on veut.
 
-**Contenu** : sacs regroupés et triés par catégorie, cadres joueur / cible / groupe, barre d'infos, auras près de la minimap, barres d'action (dont une barre de consommables automatique), compteur de combat pour remplacer Combat Analysis (dégâts, soins, dégâts reçus, détail par compétence), thèmes, profils partageables par code, mode déplacement et assistant de configuration. En anglais, français et allemand.
+**Contenu** : sacs regroupés et triés par catégorie, cadres joueur / cible / groupe, barre d'infos, auras près de la minimap, barres de temps des buffs et débuffs, rappels de buffs, barres d'action (dont une barre de consommables automatique et une barre Voyage), compteur de combat pour remplacer Combat Analysis (dégâts, soins, dégâts reçus, détail par compétence), thèmes, profils partageables par code, mode déplacement et assistant de configuration. En anglais, français et allemand.
 
 **Installation** : télécharger **GrommeyUI-x.y.z.zip** dans la [dernière version](https://github.com/JeromeM/GrommeyUI/releases/latest) (ou sur LoTROInterface), le décompresser dans `Documents\The Lord of the Rings Online\Plugins\` (il contient le dossier `GrommeyUI`, rien à renommer), puis charger **GrommeyUI** dans le gestionnaire de plugins du jeu (ou `/plugins load GrommeyUI`). Ne pas charger `~GrommeyUIReloader` à la main.
 
