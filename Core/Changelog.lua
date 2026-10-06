@@ -3,6 +3,9 @@
 -- translations in Locales/*.lua.
 
 Grommey.Changelog = {
+    { version = "1.2.1"; items = {
+        L("Target, target of target and party frames: their buffs and debuffs could stop updating when they changed many times a second (a raid boss). They are now read at most 4 times a second.");
+    }; };
     { version = "1.2.0"; items = {
         L("New module: Timer bars. Your buffs and debuffs as bars that empty as they run out, with the name and the time left, and their own filters (all except hidden ones, or only the effects you choose).");
         L("New module: Buff reminders. A warning when a buff you chose is missing or about to end, as icons or a list, with a chat message if you want.");

@@ -38,6 +38,10 @@ Une interface moderne et épurée pour Le Seigneur des Anneaux Online : fenêtre
 [B]Installation[/B] : décompresser le fichier dans [I]Documents\The Lord of the Rings Online\Plugins\[/I] (il contient le dossier [I]GrommeyUI[/I], rien à renommer), puis charger [B]GrommeyUI[/B] dans le gestionnaire de plugins du jeu ou taper [I]/plugins load GrommeyUI[/I].
 
 [SIZE="3"][B]Changelog[/B][/SIZE]
+[B]1.2.1[/B]
+[LIST]
+[*]Target, target of target and party frames: their buffs and debuffs could stop updating when they changed many times a second (a raid boss). They are now read at most 4 times a second.
+[/LIST]
 [B]1.2.0[/B]
 [LIST]
 [*]New module: Timer bars. Your buffs and debuffs as bars that empty as they run out, with the name and the time left, and their own filters (all except hidden ones, or only the effects you choose).

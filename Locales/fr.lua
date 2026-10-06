@@ -634,4 +634,6 @@ Grommey.AddTranslations("fr", {
     ["Bags: hold Shift while dragging an item to drop it into any category. Your empty categories only show up then."] = "Sacs : tiens Maj en glissant un objet pour le déposer dans n'importe quelle catégorie. Tes catégories vides n'apparaissent qu'à ce moment-là.";
     ["Combat meter: the damage of your pets, added to yours or shown apart."] = "Compteur de combat : les dégâts de tes familiers, ajoutés aux tiens ou affichés à part.";
     ["Options: a bigger window, a menu in categories you can fold, and clearer help notes. Areas keep their place when they change size."] = "Options : une fenêtre plus grande, un menu en catégories qu'on peut plier, et des textes d'aide plus clairs. Les zones gardent leur place quand elles changent de taille.";
+    -- What's new 1.2.1
+    ["Target, target of target and party frames: their buffs and debuffs could stop updating when they changed many times a second (a raid boss). They are now read at most 4 times a second."] = "Cadres de la cible, de la cible de la cible et du groupe : leurs buffs et débuffs pouvaient ne plus se mettre à jour quand ils changeaient plusieurs fois par seconde (un boss de raid). Ils sont maintenant lus au plus 4 fois par seconde.";
 });

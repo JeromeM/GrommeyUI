@@ -30,6 +30,8 @@ function UF.UnitFrame:Constructor(key, name, settings, getUnit, defaultX, defaul
     -- The panel changed size by itself (morale arrived late), place everything again
     self.panel.OnLayoutChanged = function() self:Layout(); end
     self.effects = UF.EffectsBar(self, settings.effects);
+    -- Effects of other units can change many times a second in a group: read them 4 times a second at most
+    if (key ~= "player") then self.effects.rebuildDelay = 0.25; end
 
     self.nextRefresh = 0;
     self.nextTimes = 0;

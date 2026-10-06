@@ -214,7 +214,16 @@ function UF.EffectsBar:SetUnit(unit)
         local ok, effects = pcall(unit.GetEffects, unit);
         if (ok and effects ~= nil) then
             self.effects = effects;
-            local function Changed() Grommey.Delay(self, 0.05, function() self:Rebuild(); end); end
+            -- At most one rebuild per delay. A rebuild already asked for is not pushed back: with a
+            -- steady flow of changes (a raid boss covered in debuffs) it would never come.
+            local function Changed()
+                if (self.rebuildPending) then return; end
+                self.rebuildPending = true;
+                Grommey.Delay(self, self.rebuildDelay or 0.05, function()
+                    self.rebuildPending = false;
+                    self:Rebuild();
+                end);
+            end
             for _, eventName in ipairs({ "EffectAdded", "EffectRemoved", "EffectsCleared" }) do
                 table.insert(self.callbacks, { object = effects; eventName = eventName; callback = Grommey.AddCallback(effects, eventName, Changed); });
             end
