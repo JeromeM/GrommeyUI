@@ -34,3 +34,33 @@ Source code and bug reports: [URL="https://github.com/JeromeM/GrommeyUI"]github.
 Une interface moderne et épurée pour Le Seigneur des Anneaux Online : fenêtres plates et opaques, une couleur de thème, et tout se règle et se place où on veut. Sacs regroupés et triés par catégorie (avec tes propres catégories), cadres joueur / cible / cible de la cible / groupe, barre d'infos, auras près de la minimap, barres d'action avec une barre de consommables automatique, compteur de combat pour remplacer Combat Analysis, thèmes, profils partageables par code, mode déplacement, assistant de configuration. En anglais, français et allemand.
 
 [B]Installation[/B] : décompresser le fichier dans [I]Documents\The Lord of the Rings Online\Plugins\[/I] (il contient le dossier [I]GrommeyUI[/I], rien à renommer), puis charger [B]GrommeyUI[/B] dans le gestionnaire de plugins du jeu ou taper [I]/plugins load GrommeyUI[/I].
+
+[SIZE="3"][B]Changelog[/B][/SIZE]
+[B]1.1.1[/B]
+[LIST]
+[*]Fixes an "invalid key to 'next'" error that could show up after using an item of the bag.
+[/LIST]
+[B]1.1.0[/B]
+[LIST]
+[*]New module: Combat meter, to replace Combat Analysis. Damage done and taken, enemies, healing and power of your character, fight by fight.
+[*]Key figures at the top (DPS, critical hits, avoided attacks...), bars by skill, target, attacker or healer, and a summary whose lines you choose.
+[*]Click a bar for the detail window: hits, critical and devastating hits, average, biggest, every kind of avoidance and damage type.
+[*]Fights are kept between reloads. A preview shows a made up fight to set the window up without fighting.
+[*]The meter reads the combat log of the English, French and German clients.
+[/LIST]
+[B]1.0.1[/B]
+[LIST]
+[*]GrommeyUI can now be recognised and updated by LOTRO Plugin Compendium.
+[/LIST]
+[B]1.0.0[/B]
+[LIST]
+[*]First stable version of GrommeyUI.
+[*]Bags: one window sorted by category, your own categories, search, money and currencies at the bottom.
+[*]Unit frames: player, target, target of target and party, click a frame to target.
+[*]Info bar: money, currencies, bags, durability, FPS, time, session and character.
+[*]Auras: buffs and debuffs next to the minimap, with important and hidden effects.
+[*]Action bars: extra bars, and a consumables bar that fills itself from your backpack.
+[*]Themes, fonts and text size, profiles to export and import.
+[*]A setup assistant, in English, French and German.
+[*]This window shows what is new after each update. Open it again from the General page of the options.
+[/LIST]

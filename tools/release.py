@@ -5,6 +5,10 @@
     python3 tools/release.py 1.0.1 --id 1234    also sets the LoTROInterface id in the .plugincompendium
 
 Before it: add the version at the top of Core/Changelog.lua (texts with L() and their translations).
+The Changelog section at the end of docs/lotrointerface.txt is written again from it: copy the whole
+file into the description of LoTROInterface (it has no changelog field).
+
+    python3 tools/release.py --lotrointerface   only writes that section again
 The ZIP (dist/GrommeyUI-<version>.zip) holds a single GrommeyUI folder to drop into
 Documents/The Lord of the Rings Online/Plugins, nothing to rename. Upload it to LoTROInterface by hand.
 """
@@ -62,6 +66,32 @@ def changelog_items(version):
     return re.findall(r'L\("((?:[^"\\]|\\.)*)"\)', match.group(1))
 
 
+LOTROINTERFACE = "docs/lotrointerface.txt"
+CHANGELOG_TITLE = '[SIZE="3"][B]Changelog[/B][/SIZE]'
+
+
+def all_changelog():
+    """Every version of Core/Changelog.lua, newest first: [(version, [items])]."""
+    source = read("Core/Changelog.lua")
+    entries = re.findall(r'version\s*=\s*"([^"]+)";\s*items\s*=\s*\{(.*?)\}\s*;\s*\}', source, re.S)
+    return [(version, [item.replace('\\"', '"') for item in re.findall(r'L\("((?:[^"\\]|\\.)*)"\)', body)])
+            for version, body in entries]
+
+
+def update_lotrointerface():
+    """The description of LoTROInterface ends with the changelog, in BBCode."""
+    text = read(LOTROINTERFACE)
+    if CHANGELOG_TITLE in text:
+        text = text[:text.index(CHANGELOG_TITLE)]
+    lines = [text.rstrip("\n"), "", CHANGELOG_TITLE]
+    for version, items in all_changelog():
+        lines.append("[B]%s[/B]" % version)
+        lines.append("[LIST]")
+        lines += ["[*]" + item for item in items]
+        lines.append("[/LIST]")
+    write(LOTROINTERFACE, "\n".join(lines) + "\n")
+
+
 def check(version):
     if not re.match(r"^\d+\.\d+\.\d+$", version):
         fail("the version must look like 1.0.1")
@@ -105,6 +135,10 @@ def main():
     if not arguments:
         print(__doc__)
         sys.exit(1)
+    if arguments[0] == "--lotrointerface":
+        update_lotrointerface()
+        print("Written: " + LOTROINTERFACE)
+        return
     version = arguments[0]
     dry_run = "--dry-run" in arguments
     lotro_id = arguments[arguments.index("--id") + 1] if "--id" in arguments else None
@@ -121,6 +155,7 @@ def main():
         fail("GitHub has commits you do not have: git pull --rebase first")
 
     set_version(version, lotro_id)
+    update_lotrointerface()
     run("git", "add", "-A")
     run("git", "commit", "-q", "-m", "GrommeyUI %s" % version)
     run("git", "tag", "v" + version)
@@ -129,7 +164,7 @@ def main():
     run("git", "push", "-q", "origin", "v" + version)
     run("gh", "release", "create", "v" + version, archive, "--title", "GrommeyUI %s" % version, "--notes", release_notes(version))
     print("Released %s: %s" % (version, archive))
-    print("Last step: upload this ZIP to LoTROInterface.")
+    print("Last step: upload this ZIP to LoTROInterface, with %s as the description." % LOTROINTERFACE)
 
 
 if __name__ == "__main__":
