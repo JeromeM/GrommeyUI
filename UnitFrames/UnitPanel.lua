@@ -9,26 +9,21 @@ local Theme = Grommey.Theme;
 local NAME_HEIGHT = 18;
 local BAR_GAP = 2;
 
--- Class resources the API exposes: method to read it, its range
-local ClassResources = {
-    { method = "GetFervor"; minimum = 0; maximum = 5; };       -- Champion
-    { method = "GetFocus"; minimum = 0; maximum = 9; };        -- Hunter
-    { method = "GetWrath"; minimum = 0; maximum = 100; };      -- Beorning
-    { method = "GetAttunement"; minimum = -10; maximum = 10; };-- Rune-keeper
-};
-
--- Returns a function giving value, minimum, maximum for the local player resource, or nil
-local function FindClassResource(unit)
+-- Returns a function giving the value of the local player resource and its definition
+-- (UF.ClassResources, UnitFrames/ClassResource.lua), or nil
+function UF.FindClassResource(unit)
     if (unit == nil or unit.GetClassAttributes == nil) then return nil; end
     local ok, attributes = pcall(unit.GetClassAttributes, unit);
     if (not ok or attributes == nil) then return nil; end
-    for _, resource in ipairs(ClassResources) do
-        if (attributes[resource.method] ~= nil) then
+    for _, resource in ipairs(UF.ClassResources) do
+        if (attributes[resource.detect] ~= nil) then
+            -- The preview gives a sample instead of the real attributes
+            if (attributes.isSample) then return resource.Sample, resource; end
             return function()
-                local readOk, value = pcall(attributes[resource.method], attributes);
-                if (not readOk or value == nil) then return nil; end
-                return value, resource.minimum, resource.maximum;
-            end
+                local readOk, state = pcall(resource.Read, attributes);
+                if (not readOk) then return nil; end
+                return state;
+            end, resource;
         end
     end
     return nil;
@@ -68,8 +63,7 @@ function UF.UnitPanel:Constructor(parent, settings)
     self.moraleBar = UF.CreateBar(self);
     self.powerBar = UF.CreateBar(self);
     self.powerBar.SetColor(UF.Colors.power);
-    self.resourceBar = UF.CreateBar(self);
-    Theme.Track(function() self.resourceBar.SetColor(Theme.Color("accent")); end);
+    self.resourceBar = UF.CreateResource(self);
 
     -- Clicking the panel selects the unit, like the game frames do
     if (Turbine.UI.Lotro.EntityControl ~= nil) then
@@ -111,12 +105,13 @@ function UF.UnitPanel:Layout()
     end
     self.moraleBar.SetMirrored(mirrored);
     self.powerBar.SetMirrored(mirrored);
-    self.resourceBar.SetMirrored(mirrored);
+    self.moraleBar.SetSmooth(settings.smoothBars);
+    self.powerBar.SetSmooth(settings.smoothBars);
 
     -- Text colours and style
     local textColor = UF.ResolveColor(settings.textColor or "white");
     local textStyle = settings.textStyle or "outline";
-    for _, bar in ipairs({ self.moraleBar, self.powerBar, self.resourceBar }) do bar.SetTextStyle(textColor, textStyle); end
+    for _, bar in ipairs({ self.moraleBar, self.powerBar }) do bar.SetTextStyle(textColor, textStyle); end
     UF.ApplyTextStyle(self.nameLabel, textStyle);
     UF.ApplyTextStyle(self.levelLabel, textStyle);
     self.nameColor = UF.ResolveColor(settings.nameColor or "white");
@@ -143,20 +138,25 @@ function UF.UnitPanel:Layout()
     self.moraleBar.Resize(width, settings.moraleHeight);
     y = y + settings.moraleHeight;
 
-    self.powerBar:SetVisible(settings.showPower);
-    if (settings.showPower) then
+    -- A free power bar lives in a window of its own (UnitFrames/FreeResource.lua)
+    local powerHere = settings.showPower and not settings.powerFree;
+    self.powerBar:SetVisible(powerHere);
+    if (powerHere) then
         y = y + gap;
         self.powerBar:SetPosition(0, y);
         self.powerBar.Resize(width, settings.powerHeight);
         y = y + settings.powerHeight;
     end
 
-    self.resourceGetter = (settings.showResource and FindClassResource(self.unit)) or nil;
-    self.resourceBar:SetVisible(self.resourceGetter ~= nil);
-    if (self.resourceGetter ~= nil) then
+    local getter, definition = nil, nil;
+    -- A free resource lives in a window of its own (UnitFrames/FreeResource.lua)
+    if (settings.showResource and not settings.resourceFree) then getter, definition = UF.FindClassResource(self.unit); end
+    self.resourceGetter = getter;
+    self.resourceBar:SetVisible(getter ~= nil);
+    if (getter ~= nil) then
         y = y + gap;
         self.resourceBar:SetPosition(0, y);
-        self.resourceBar.Resize(width, settings.resourceHeight or 8);
+        self.resourceBar.Resize(width, settings.resourceHeight or 8, definition);
         y = y + (settings.resourceHeight or 8);
     end
 
@@ -211,7 +211,7 @@ function UF.UnitPanel:Refresh(force)
         self.moraleBar.SetText("");
     end
 
-    if (settings.showPower) then
+    if (settings.showPower and not settings.powerFree) then
         local power = Read(unit, "GetPower");
         local maxPower = Read(unit, "GetMaxPower");
         if (power ~= nil and maxPower ~= nil and maxPower > 0) then
@@ -224,11 +224,8 @@ function UF.UnitPanel:Refresh(force)
     end
 
     if (self.resourceGetter ~= nil) then
-        local value, minimum, maximum = self.resourceGetter();
-        if (value ~= nil) then
-            self.resourceBar.SetRatio((value - minimum) / (maximum - minimum), force);
-            self.resourceBar.SetText(tostring(value));
-        end
+        local state = self.resourceGetter();
+        if (state ~= nil) then self.resourceBar.Set(state, force); end
     end
 end
 

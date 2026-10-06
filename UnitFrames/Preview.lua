@@ -14,8 +14,22 @@ local BUFF_COLORS = {
 };
 local DEBUFF_COLOR = Turbine.UI.Color(0.55, 0.16, 0.16);
 
+-- The class resource of the real character with a sample state (fervour 3 of 5...), or the
+-- champion's for a class without one, so the resource can be set up out of combat
+function UF.DummyClassAttributes()
+    local player = Turbine.Gameplay.LocalPlayer.GetInstance();
+    local ok, attributes = pcall(player.GetClassAttributes, player);
+    for _, resource in ipairs(UF.ClassResources or {}) do
+        if (ok and attributes ~= nil and attributes[resource.detect] ~= nil) then
+            return { isSample = true; [resource.detect] = true; };
+        end
+    end
+    return { isSample = true; GetFervor = true; };
+end
+
 local function DummyUnit(name, level, morale, maxMorale, power, maxPower, className)
     return {
+        GetClassAttributes = UF.DummyClassAttributes;
         GetClass = function()
             if (className == nil or Turbine.Gameplay.Class == nil) then return nil; end
             return Turbine.Gameplay.Class[className];

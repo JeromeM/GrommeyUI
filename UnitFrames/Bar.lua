@@ -214,15 +214,47 @@ function UF.CreateBar(parent)
         bar.SetRatio(bar.ratio, true);
     end
 
-    bar.SetRatio = function(ratio, force)
-        ratio = Grommey.Clamp(ratio or 0, 0, 1);
-        if (ratio == bar.ratio and not force) then return; end
-        bar.ratio = ratio;
+    local function Draw(ratio)
+        bar.shown = ratio;
         local width, height = bar.back:GetSize();
         local fillWidth = math.floor(width * ratio + 0.5);
         bar.fill:SetSize(fillWidth, height);
         -- A mirrored bar fills from the right
         bar.fill:SetPosition(bar.mirrored and (width - fillWidth) or 0, 0);
+    end
+
+    -- Smooth bars glide to a new value instead of jumping: a little closer on every frame,
+    -- fast at first and slower at the end (about a third of a second)
+    local SMOOTH_SPEED = 12;
+    bar.Update = function()
+        local now = Turbine.Engine.GetGameTime();
+        local elapsed = math.min(0.1, now - (bar.lastFrame or now));
+        bar.lastFrame = now;
+        local shown = bar.shown or bar.ratio;
+        local step = (bar.ratio - shown) * math.min(1, elapsed * SMOOTH_SPEED);
+        if (math.abs(bar.ratio - shown) < 0.002) then
+            Draw(bar.ratio);
+            bar:SetWantsUpdates(false);
+            return;
+        end
+        Draw(shown + step);
+    end
+
+    bar.SetRatio = function(ratio, force)
+        ratio = Grommey.Clamp(ratio or 0, 0, 1);
+        if (ratio == bar.ratio and not force) then return; end
+        bar.ratio = ratio;
+        if (bar.smooth and not force and bar.shown ~= nil) then
+            bar.lastFrame = Turbine.Engine.GetGameTime();
+            bar:SetWantsUpdates(true);
+            return;
+        end
+        bar:SetWantsUpdates(false);
+        Draw(ratio);
+    end
+
+    bar.SetSmooth = function(smooth)
+        bar.smooth = (smooth == true);
     end
 
     bar.SetMirrored = function(mirrored)

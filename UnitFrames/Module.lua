@@ -61,8 +61,15 @@ local function DestroyFrame(key)
 end
 
 -- Applies the settings of one frame: creates, removes or lays it out again
+-- Unit of a frame, for its free bars
+local function UnitGetter(key)
+    if (key == "target") then return function() return player:GetTarget(); end; end
+    return function() return player; end;
+end
+
 local function Apply(key)
     local settings = settingsRoot[key];
+    if (key == "player" or key == "target") then UF.FreeResource.Apply(key, settings, UnitGetter(key)); end
     if (not settings.enabled) then DestroyFrame(key); return; end
     if (frames[key] == nil) then CreateFrame(key); return; end
     if (key == "party") then frames.party:Relayout(); else frames[key]:UpdateUnit(); end
@@ -99,7 +106,7 @@ local function Translated(items)
 end
 
 local selectedFrame = "player";
-local selectedSection = "bars";
+local selectedSection = "general";
 
 -- Builds the controls of one section of one frame
 local function BuildFrameOptions(page, width, key, section)
@@ -116,6 +123,70 @@ local function BuildFrameOptions(page, width, key, section)
         UI.Label(page, x, y, half, 18, text);
         UI.Dropdown(page, x, y + 20, half, Translated(items), value, onChange);
         return 52;
+    end
+
+    -- Player and target: general, morale, power and resource each in a section of their own
+    if (section == "general") then
+        UI.Toggle(page, 0, 0, half, L("Show this frame"), settings.enabled, function(value) settings.enabled = value; Changed(); end);
+        if (key == "target") then
+            UI.Button(page, right, -2, half, L("Copy the player, mirrored"), function()
+                MirrorPlayerToTarget();
+                if (frames.target) then frames.target:Destroy(); frames.target = nil; end
+                Changed();
+                Grommey.Options.ShowPage("module:UnitFrames");
+            end, "accent");
+        end
+        UI.Toggle(page, 0, 30, half, L("Mirrored (right to left)"), settings.mirrored, function(value) settings.mirrored = value; Changed(); end);
+        UI.Toggle(page, right, 30, half, L("Name and level"), settings.showName, function(value) settings.showName = value; Changed(); end);
+        UI.Slider(page, 0, 72, half, L("Width"), 100, 400, 10, settings.width, function(value) settings.width = value; Changed(); end, " px");
+        UI.Slider(page, right, 72, half, L("Space between bars"), 0, 20, 1, settings.barGap or 2, function(value) settings.barGap = value; Changed(); end, " px");
+        -- Morale and power glide to their new value instead of jumping
+        UI.Toggle(page, 0, 130, width, L("Smooth bars (morale and power glide to their new value)"), settings.smoothBars == true, function(value) settings.smoothBars = value; Changed(); end);
+        return;
+    elseif (section == "morale") then
+        UI.Slider(page, 0, 0, half, L("Morale height"), 6, 40, 1, settings.moraleHeight, function(value) settings.moraleHeight = value; Changed(); end, " px");
+        LabeledDropdown(right, 0, L("Morale text"), UF.TextModes, settings.moraleText, function(value) settings.moraleText = value; Changed(); end);
+        return;
+    elseif (section == "power" or section == "resource") then
+        local power = (section == "power");
+        local function Reopen() Grommey.Options.ShowPage("module:UnitFrames"); end
+        if (power) then
+            UI.Toggle(page, 0, 0, half, L("Power bar"), settings.showPower, function(value) settings.showPower = value; Changed(); Reopen(); end);
+            UI.Slider(page, right, 0, half, L("Power height"), 2, 30, 1, settings.powerHeight, function(value) settings.powerHeight = value; Changed(); end, " px");
+            LabeledDropdown(0, 50, L("Power text"), UF.TextModes, settings.powerText, function(value) settings.powerText = value; Changed(); end);
+        else
+            UI.Toggle(page, 0, 0, half, L("Class resource"), settings.showResource, function(value) settings.showResource = value; Changed(); Reopen(); end);
+            UI.Slider(page, right, 0, half, L("Resource height"), 4, 30, 1, settings.resourceHeight or 8, function(value) settings.resourceHeight = value; Changed(); end, " px");
+        end
+        local shown = power and settings.showPower or (not power and settings.showResource);
+        if (not shown) then return; end
+
+        -- Free bar: out of the frame, in a window of its own placed with the move mode
+        local y = 118;
+        UI.Separator(page, 0, y, width);
+        y = y + 16;
+        local freeKey, widthKey, heightKey, combatKey = "powerFree", "powerFreeWidth", "powerFreeHeight", "powerFreeCombat";
+        if (not power) then freeKey, widthKey, heightKey, combatKey = "resourceFree", "freeWidth", "freeHeight", "freeCombatOnly"; end
+        UI.Toggle(page, 0, y, width, L("Free bar (placed on its own)"), settings[freeKey] == true, function(value)
+            settings[freeKey] = value;
+            Changed();
+            Reopen();
+        end);
+        y = y + 36;
+        if (settings[freeKey]) then
+            UI.Slider(page, 0, y, half, L("Width"), 40, 400, 10, settings[widthKey] or 200, function(value) settings[widthKey] = value; Changed(); end, " px");
+            UI.Slider(page, right, y, half, L("Height"), 4, 40, 1, settings[heightKey] or 10, function(value) settings[heightKey] = value; Changed(); end, " px");
+            y = y + 54;
+            UI.Button(page, 0, y, half, L("Same width as the morale"), function()
+                settings[widthKey] = settings.width;
+                Changed();
+                Reopen();
+            end, "accent");
+            UI.Toggle(page, right, y + 2, half, L("In combat only"), settings[combatKey] == true, function(value) settings[combatKey] = value; Changed(); end);
+            y = y + 44;
+            UI.Note(page, 0, y, width, L("Place the free bar with the move mode. It leaves the frame, which gets smaller."));
+        end
+        return;
     end
 
     if (section == "bars") then
@@ -238,15 +309,25 @@ local function BuildOptions(page, width, settings)
         Grommey.Options.ShowPage("module:UnitFrames");
     end);
 
-    local sections = {
-        { key = "bars"; text = L("Bars"); };
-        { key = "effects"; text = (selectedFrame == "party") and L("Party") or L("Effects"); };
-        { key = "text"; text = L("Colours"); };
-    };
-    local x = 190;
-    local buttonWidth = math.floor((width - x - 16) / 3);
+    -- Player and target: a section for each bar; the others keep their bars together
+    local sections;
+    if (selectedFrame == "player" or selectedFrame == "target") then
+        sections = { { key = "general"; text = L("General"); }, { key = "morale"; text = L("Morale"); }, { key = "power"; text = L("Power"); } };
+        if (selectedFrame == "player") then table.insert(sections, { key = "resource"; text = L("Resource"); }); end
+    else
+        sections = { { key = "bars"; text = L("Bars"); } };
+    end
+    table.insert(sections, { key = "effects"; text = (selectedFrame == "party") and L("Party") or L("Effects"); });
+    table.insert(sections, { key = "text"; text = L("Colours"); });
+    local known = false;
+    for _, section in ipairs(sections) do if (section.key == selectedSection) then known = true; end end
+    if (not known) then selectedSection = sections[1].key; end
+
+    -- The sections on their own line, under the frame choice
+    local x = 0;
+    local buttonWidth = math.floor((width - 8 * (#sections - 1)) / #sections);
     for _, section in ipairs(sections) do
-        UI.Button(page, x, 52, buttonWidth, section.text, function()
+        UI.Button(page, x, 90, buttonWidth, section.text, function()
             selectedSection = section.key;
             Grommey.Options.ShowPage("module:UnitFrames");
         end, (selectedSection == section.key) and "accent" or nil);
@@ -255,8 +336,8 @@ local function BuildOptions(page, width, settings)
 
     local holder = Turbine.UI.Control();
     holder:SetParent(page);
-    holder:SetPosition(0, 100);
-    holder:SetSize(width, page:GetHeight() - 100);
+    holder:SetPosition(0, 136);
+    holder:SetSize(width, page:GetHeight() - 136);
     BuildFrameOptions(holder, width, selectedFrame, selectedSection);
 end
 
@@ -277,6 +358,8 @@ Grommey.Modules.Register({
             enabled = true; mirrored = false; width = 240; showName = true;
             moraleHeight = 22; moraleText = "both"; showPower = true; powerHeight = 10; powerText = "number";
             showResource = true; resourceHeight = 8; barGap = 2;
+            resourceFree = false; freeWidth = 200; freeHeight = 12; freeCombatOnly = false;
+            powerFree = false; powerFreeWidth = 200; powerFreeHeight = 8; powerFreeCombat = false;
             nameColor = "white"; textColor = "white"; textStyle = "outline";
             effects = EffectDefaults("bottom", "right");
         };
@@ -284,6 +367,7 @@ Grommey.Modules.Register({
             enabled = true; mirrored = true; width = 240; showName = true;
             moraleHeight = 22; moraleText = "both"; showPower = true; powerHeight = 10; powerText = "number";
             showResource = false; resourceHeight = 8; barGap = 2;
+            powerFree = false; powerFreeWidth = 200; powerFreeHeight = 8; powerFreeCombat = false;
             nameColor = "white"; textColor = "white"; textStyle = "outline";
             effects = EffectDefaults("bottom", "left");
         };
@@ -308,6 +392,8 @@ Grommey.Modules.Register({
         for _, key in ipairs(FRAME_KEYS) do
             if (settings[key].enabled) then CreateFrame(key); end
         end
+        UF.FreeResource.Apply("player", settings.player, UnitGetter("player"));
+        UF.FreeResource.Apply("target", settings.target, UnitGetter("target"));
 
         targetCallback = Grommey.AddCallback(player, "TargetChanged", function()
             if (frames.target) then frames.target:UpdateUnit(); end
@@ -355,6 +441,7 @@ Grommey.Modules.Register({
     Disable = function()
         if (targetCallback) then Grommey.RemoveCallback(player, "TargetChanged", targetCallback); targetCallback = nil; end
         for _, key in ipairs(FRAME_KEYS) do DestroyFrame(key); end
+        UF.FreeResource.Destroy();
     end;
 
     BuildOptions = BuildOptions;

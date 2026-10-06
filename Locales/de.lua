@@ -566,4 +566,14 @@ Grommey.AddTranslations("de", {
     ["Order of the items"] = "Reihenfolge der Gegenstände";
     ["Set my order"] = "Meine Reihenfolge festlegen";
     ["The items of the bar, in the order they are shown. Move them with the arrows; new items come at the end."] = "Die Gegenstände der Leiste in der angezeigten Reihenfolge. Verschiebe sie mit den Pfeilen; neue Gegenstände kommen ans Ende.";
+    ["Free bar (placed on its own)"] = "Freie Leiste (eigenständig platziert)";
+    ["Morale"] = "Moral";
+    ["Place the free bar with the move mode. It leaves the frame, which gets smaller."] = "Platziere die freie Leiste mit dem Verschiebemodus. Sie verlässt den Rahmen, der kleiner wird.";
+    ["Player power"] = "Kraft des Spielers";
+    ["Power"] = "Kraft";
+    ["Resource"] = "Ressource";
+    ["Same width as the morale"] = "Gleiche Breite wie die Moral";
+    ["Target power"] = "Kraft des Ziels";
+    ["Resource height"] = "Höhe der Ressource";
+    ["Smooth bars (morale and power glide to their new value)"] = "Fließende Leisten (Moral und Kraft gleiten zu ihrem neuen Wert)";
 });
