@@ -9,6 +9,7 @@ import "GrommeyUI.InfoBar";
 import "GrommeyUI.Auras";
 import "GrommeyUI.ActionBars";
 import "GrommeyUI.Meter";
+import "GrommeyUI.Reminders";
 
 local RELOADER = "~GrommeyUIReloader";
 

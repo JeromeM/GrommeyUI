@@ -363,9 +363,26 @@ function Grommey.Options.Create()
         end
     end
 
-    Grommey.Movers.Register("options", window, L("Options window"),
-        function() return math.floor((Turbine.UI.Display.GetWidth() - WIDTH) / 2); end,
-        function() return math.floor((Turbine.UI.Display.GetHeight() - HEIGHT) / 2); end);
+    local function RegisterMover()
+        Grommey.Movers.Register("options", window, L("Options window"),
+            function() return math.floor((Turbine.UI.Display.GetWidth() - WIDTH) / 2); end,
+            function() return math.floor((Turbine.UI.Display.GetHeight() - HEIGHT) / 2); end);
+    end
+    RegisterMover();
+
+    -- The window moves by its title, it has no box in move mode: it hides and comes back after
+    local hiddenForMove = false;
+    Grommey.On("MoveModeChanged", function(active)
+        if (active) then
+            Grommey.Movers.Unregister("options");
+            hiddenForMove = window:IsVisible();
+            if (hiddenForMove) then window:SetVisible(false); end
+        else
+            RegisterMover();
+            if (hiddenForMove) then window:SetVisible(true); end
+            hiddenForMove = false;
+        end
+    end);
 
     -- Hiding the interface (F12) closes the options
     Grommey.On("HudToggled", function(hidden) if (hidden) then window:SetVisible(false); end end);
