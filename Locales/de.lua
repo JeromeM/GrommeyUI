@@ -527,4 +527,5 @@ Grommey.AddTranslations("de", {
     ["Second Wind"] = "Zweiter Atem";
     ["Healing Words"] = "Worte der Heilung";
     ["Power Surge"] = "Kraftschub";
+    ["Fixes an \"invalid key to 'next'\" error that could show up after using an item of the bag."] = "Behebt einen Fehler „invalid key to 'next'“, der nach der Benutzung eines Gegenstands aus der Tasche auftreten konnte.";
 });

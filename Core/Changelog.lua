@@ -3,6 +3,9 @@
 -- translations in Locales/*.lua.
 
 Grommey.Changelog = {
+    { version = "1.1.1"; items = {
+        L("Fixes an \"invalid key to 'next'\" error that could show up after using an item of the bag.");
+    }; };
     { version = "1.1.0"; items = {
         L("New module: Combat meter, to replace Combat Analysis. Damage done and taken, enemies, healing and power of your character, fight by fight.");
         L("Key figures at the top (DPS, critical hits, avoided attacks...), bars by skill, target, attacker or healer, and a summary whose lines you choose.");

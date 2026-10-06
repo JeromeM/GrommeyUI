@@ -60,17 +60,19 @@ local delayed = {};
 local delayControl = Turbine.UI.Control();
 delayControl.Update = function()
     local now = Turbine.Engine.GetGameTime();
-    local pending = false;
+    -- The ones due are picked first and run after the loop: a callback often asks for another delay
+    -- (the bag stacking goes step by step), and adding a key while pairs() walks the table breaks it
+    local due = {};
     for key, entry in pairs(delayed) do
-        if (now >= entry.at) then
-            delayed[key] = nil;
-            local ok, message = pcall(entry.callback);
-            if (not ok) then Grommey.Print("<rgb=#FF6060>" .. tostring(message) .. "</rgb>"); end
-        else
-            pending = true;
-        end
+        if (now >= entry.at) then due[key] = entry; end
     end
-    if (not pending and next(delayed) == nil) then delayControl:SetWantsUpdates(false); end
+    for key, entry in pairs(due) do
+        -- Asked again since: the new delay stays
+        if (delayed[key] == entry) then delayed[key] = nil; end
+        local ok, message = pcall(entry.callback);
+        if (not ok) then Grommey.Print("<rgb=#FF6060>" .. tostring(message) .. "</rgb>"); end
+    end
+    if (next(delayed) == nil) then delayControl:SetWantsUpdates(false); end
 end
 
 function Grommey.Delay(key, seconds, callback)
