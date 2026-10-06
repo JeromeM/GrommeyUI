@@ -3,6 +3,9 @@
 -- translations in Locales/*.lua.
 
 Grommey.Changelog = {
+    { version = "1.2.2"; items = {
+        L("Bags: a warning in the chat for any other loaded plugin with \"bag\" in its name, not only Prime Bags and HugeBag. Two bag plugins at once fight over the bag keys.");
+    }; };
     { version = "1.2.1"; items = {
         L("Target, target of target and party frames: their buffs and debuffs could stop updating when they changed many times a second (a raid boss). They are now read at most 4 times a second.");
     }; };

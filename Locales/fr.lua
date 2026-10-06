@@ -636,4 +636,6 @@ Grommey.AddTranslations("fr", {
     ["Options: a bigger window, a menu in categories you can fold, and clearer help notes. Areas keep their place when they change size."] = "Options : une fenêtre plus grande, un menu en catégories qu'on peut plier, et des textes d'aide plus clairs. Les zones gardent leur place quand elles changent de taille.";
     -- What's new 1.2.1
     ["Target, target of target and party frames: their buffs and debuffs could stop updating when they changed many times a second (a raid boss). They are now read at most 4 times a second."] = "Cadres de la cible, de la cible de la cible et du groupe : leurs buffs et débuffs pouvaient ne plus se mettre à jour quand ils changeaient plusieurs fois par seconde (un boss de raid). Ils sont maintenant lus au plus 4 fois par seconde.";
+    -- What's new 1.2.2
+    ["Bags: a warning in the chat for any other loaded plugin with \"bag\" in its name, not only Prime Bags and HugeBag. Two bag plugins at once fight over the bag keys."] = "Sacs : un avertissement dans le chat pour tout autre plugin chargé dont le nom contient « bag », pas seulement Prime Bags et HugeBag. Deux plugins de sacs en même temps se disputent les touches des sacs.";
 });
