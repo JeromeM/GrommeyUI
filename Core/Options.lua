@@ -394,6 +394,11 @@ function Grommey.Options.ShowPage(key)
     for _, item in pairs(menuItems) do item.Paint(); end
 end
 
+-- Draws a page again if it is the one shown, after a change made elsewhere
+function Grommey.Options.Refresh(key)
+    if (window and window:IsVisible() and currentKey == key) then Grommey.Options.ShowPage(key); end
+end
+
 function Grommey.Options.Toggle()
     if (window == nil) then return; end
     window:Toggle();

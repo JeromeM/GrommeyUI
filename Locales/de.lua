@@ -343,7 +343,7 @@ Grommey.AddTranslations("de", {
     ["Move up"] = "Nach oben";
     ["Move down"] = "Nach unten";
     ["No category yet. Give it a name and create it."] = "Noch keine Kategorie. Gib ihr einen Namen und erstelle sie.";
-    ["Drag an item here to put it in this category. You can also drop it on a category title in the bag."] = "Ziehe einen Gegenstand hierher, um ihn in diese Kategorie zu legen. Du kannst ihn auch auf einen Kategorietitel in der Tasche ziehen.";
+    ["Drag an item here to put it in this category. In the bag: drop it on a title, or hold Shift while dragging."] = "Ziehe einen Gegenstand hierher, um ihn in diese Kategorie zu legen. In der Tasche: auf einen Titel ziehen oder beim Ziehen Umschalt halten.";
     ["No item in this category yet."] = "Noch kein Gegenstand in dieser Kategorie.";
 
     -- Unit frames: target of target

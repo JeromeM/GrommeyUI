@@ -42,6 +42,7 @@ function Grommey.Bags.Window:Constructor(settings)
 
     self.slots = {};
     self.headers = {};
+    self.dropCells = {};
     self.newSlots = {};
     -- Names of the items the character already has: one coming back to the bag (an item taken
     -- off when another is put on, a stack growing) is not new
@@ -61,6 +62,7 @@ function Grommey.Bags.Window:Constructor(settings)
     -- Dropping an item anywhere on the window puts it in the first free slot
     self:SetAllowDrop(true);
     self.DragDrop = function(sender, args) self:DropOnFreeSlot(args); end
+    self:WatchDrag(self);
 
     self.VisibleChanged = function()
         if (self:IsVisible()) then
@@ -124,6 +126,7 @@ function Grommey.Bags.Window:CreateList()
     self.list:SetPosition(PAD, TOOLBAR_HEIGHT + 4);
     self.list:SetAllowDrop(true);
     self.list.DragDrop = function(sender, args) self:DropOnFreeSlot(args); end
+    self:WatchDrag(self.list);
 
     self.scrollBar = Turbine.UI.Lotro.ScrollBar();
     self.scrollBar:SetOrientation(Turbine.UI.Orientation.Vertical);
@@ -134,6 +137,7 @@ function Grommey.Bags.Window:CreateList()
     self.canvas = Turbine.UI.Control();
     self.canvas:SetAllowDrop(true);
     self.canvas.DragDrop = function(sender, args) self:DropOnFreeSlot(args); end
+    self:WatchDrag(self.canvas);
 end
 
 function Grommey.Bags.Window:CreateFooter()
@@ -176,6 +180,8 @@ function Grommey.Bags.Window:CreateSlot(index)
     slot.countLabel:SetVisible(false);
 
     local function OnDrop(sender, args)
+        if (self:DropOnCell(args)) then return; end
+        self:EndDrag();
         local shortcut = args.DragDropInfo:GetShortcut();
         if (shortcut == nil) then return; end
         local target = slot.index;
@@ -188,6 +194,8 @@ function Grommey.Bags.Window:CreateSlot(index)
     slot.DragDrop = OnDrop;
     slot.itemControl:SetAllowDrop(true);
     slot.itemControl.DragDrop = OnDrop;
+    self:WatchDrag(slot);
+    self:WatchDrag(slot.itemControl);
 
     self.slots[index] = slot;
     return slot;
@@ -240,6 +248,7 @@ function Grommey.Bags.Window:GetHeader(key, title)
         -- An item dropped on a title goes into that category (a game category takes it back)
         header:SetAllowDrop(true);
         header.DragDrop = function(sender, args) self:DropOnHeader(key, args); end
+        self:WatchDrag(header);
 
         -- Click a title to fold or unfold its section
         header.MouseClick = function()
@@ -267,8 +276,9 @@ local function SortSlots(window, indices)
     end);
 end
 
--- Item dropped on a category title: into a category of the player, or back to its game category
+-- Item dropped on a category title: into that category (its own game category forgets the choice)
 function Grommey.Bags.Window:DropOnHeader(key, args)
+    self:EndDrag();
     local ok, shortcut = pcall(function() return args.DragDropInfo:GetShortcut(); end);
     local item = ok and shortcut and shortcut.GetItem and shortcut:GetItem();
     local name = item and item:GetName();
@@ -276,13 +286,41 @@ function Grommey.Bags.Window:DropOnHeader(key, args)
     local settings = self.settings;
     settings.itemCategory = settings.itemCategory or {};
     local id = string.match(key, "^custom:(.+)$");
+    if (id == nil and key ~= Grommey.Bags.GetCategoryKey(item)) then id = "game:" .. key; end
     settings.itemCategory[name] = id;
     Grommey.Profiles.RequestSave();
     self:RequestLayout();
+    Grommey.Options.Refresh("module:Bags");
 end
 
 function Grommey.Bags.Window:RequestLayout()
     Grommey.Delay("BagsLayout", 0.05, function() self:Layout(); end);
+end
+
+-- Empty cell at the end of a category while Shift is held during a drag: an item dropped on it
+-- goes into that category
+function Grommey.Bags.Window:GetDropCell(key)
+    local cell = self.dropCells[key];
+    if (cell == nil) then
+        cell = Turbine.UI.Control();
+        cell:SetParent(self.canvas);
+        cell.inner = Turbine.UI.Control();
+        cell.inner:SetParent(cell);
+        cell.inner:SetPosition(1, 1);
+        cell.inner:SetMouseVisible(false);
+        cell.sign = UI.Label(cell.inner, 0, 0, 10, 10, "+", { size = 16; bold = true; role = "accent"; mouse = false; align = Turbine.UI.ContentAlignment.MiddleCenter; });
+        cell:SetAllowDrop(true);
+        cell.DragDrop = function(sender, args) self:DropOnHeader(key, args); end
+        self:WatchDrag(cell);
+        self.dropCells[key] = cell;
+    end
+    local size = self:SlotSize();
+    cell:SetSize(size, size);
+    cell:SetBackColor(Theme.Color("accent"));
+    cell.inner:SetSize(size - 2, size - 2);
+    cell.inner:SetBackColor(Theme.Mix("field", "accent", 0.15));
+    cell.sign:SetSize(size - 2, size - 2);
+    return cell;
 end
 
 function Grommey.Bags.Window:Layout()
@@ -329,10 +367,13 @@ function Grommey.Bags.Window:Layout()
     -- Sections in display order, the free slots come last as a single slot
     local sections = {};
     if (groups["New"]) then table.insert(sections, { key = "New"; title = L("New items"); indices = groups["New"]; }); end
-    -- The player's categories first, shown even empty so items can be dropped on them
+    -- The player's categories first; an empty one only shows while Shift is held during a drag,
+    -- so an item can be dropped in it
     for _, category in ipairs(settings.customCategories or {}) do
         local key = "custom:" .. category.id;
-        table.insert(sections, { key = key; title = category.name; indices = groups[key] or {}; });
+        if (groups[key] or self.categoryDrop) then
+            table.insert(sections, { key = key; title = category.name; indices = groups[key] or {}; });
+        end
     end
     for _, category in ipairs(Grommey.Bags.Categories) do
         if (groups[category.key]) then table.insert(sections, { key = category.key; title = L(category.name); indices = groups[category.key]; }); end
@@ -342,6 +383,7 @@ function Grommey.Bags.Window:Layout()
     end
 
     for _, header in pairs(self.headers) do header:SetVisible(false); end
+    for _, cell in pairs(self.dropCells) do cell:SetVisible(false); end
     for _, slot in pairs(self.slots) do slot:SetVisible(false); end
 
     -- Category boxes side by side: each box goes into the shortest column so there are no holes
@@ -352,7 +394,9 @@ function Grommey.Bags.Window:Layout()
     for _, section in ipairs(sections) do
         if (not section.isFree) then SortSlots(self, section.indices); end
         local collapsed = settings.collapsed[section.key] == true;
-        local rows = math.ceil(#section.indices / perRow);
+        -- One more cell for the item being dragged with Shift
+        local dropCell = self.categoryDrop and not collapsed and not section.isFree and section.key ~= "New";
+        local rows = math.ceil((#section.indices + (dropCell and 1 or 0)) / perRow);
         local boxHeight = HEADER_HEIGHT + 2 + (collapsed and 0 or rows * cell) + SECTION_GAP;
 
         local column = 1;
@@ -385,6 +429,12 @@ function Grommey.Bags.Window:Layout()
                     slot.countLabel:SetVisible(true);
                 end
             end
+            if (dropCell) then
+                local position = #section.indices + 1;
+                local control = self:GetDropCell(section.key);
+                control:SetPosition(x + ((position - 1) % perRow) * cell, top + math.floor((position - 1) / perRow) * cell);
+                control:SetVisible(true);
+            end
         end
     end
 
@@ -403,6 +453,7 @@ end
 -- Every slot in the real order of the bags, empty ones included, without categories
 function Grommey.Bags.Window:LayoutAllBags(size, cell, freeCount)
     for _, header in pairs(self.headers) do header:SetVisible(false); end
+    for _, dropCell in pairs(self.dropCells) do dropCell:SetVisible(false); end
     local columns = self.settings.flatColumns;
     local backpackSize = self.backpack:GetSize();
     for index = 1, backpackSize do
@@ -576,11 +627,64 @@ function Grommey.Bags.Window:FirstFreeIndex()
 end
 
 function Grommey.Bags.Window:DropOnFreeSlot(args)
+    if (self:DropOnCell(args)) then return; end
+    self:EndDrag();
     local shortcut = args.DragDropInfo:GetShortcut();
     local target = self:FirstFreeIndex();
     if (shortcut ~= nil and target ~= nil) then
         self.backpack:PerformShortcutDrop(shortcut, target, Turbine.UI.Control.IsShiftKeyDown());
     end
+end
+
+-- While an item is dragged over the bag, holding Shift (before or during the drag) shows an empty
+-- cell at the end of each category, only as long as Shift is held.
+function Grommey.Bags.Window:WatchDrag(control)
+    control.DragEnter = function() self:DragStarted(); end
+end
+
+function Grommey.Bags.Window:IsMouseOver(control)
+    local x, y = control:GetMousePosition();
+    return x >= 0 and y >= 0 and x < control:GetWidth() and y < control:GetHeight();
+end
+
+function Grommey.Bags.Window:DragStarted()
+    self.dragActive = true;
+    if (self.dragWatching) then return; end
+    self.dragWatching = true;
+    local function Watch()
+        if (not self.dragActive or not self:IsVisible() or not self:IsMouseOver(self)) then
+            self.dragWatching = false;
+            self:EndDrag();
+            return;
+        end
+        local shown = self.settings.groupByCategory and Turbine.UI.Control.IsShiftKeyDown();
+        if (shown ~= self.categoryDrop) then
+            self.categoryDrop = shown;
+            self:RequestLayout();
+        end
+        Grommey.Delay("BagsDragWatch", 0.1, Watch);
+    end
+    Watch();
+end
+
+function Grommey.Bags.Window:EndDrag()
+    self.dragActive = false;
+    if (not self.categoryDrop) then return; end
+    self.categoryDrop = false;
+    self:RequestLayout();
+end
+
+-- Dropped while the cells are shown: the cell under the mouse takes the item, whatever control
+-- the game gave the drop to
+function Grommey.Bags.Window:DropOnCell(args)
+    if (not self.categoryDrop) then return false; end
+    for key, cell in pairs(self.dropCells) do
+        if (cell:IsVisible() and self:IsMouseOver(cell)) then
+            self:DropOnHeader(key, args);
+            return true;
+        end
+    end
+    return false;
 end
 
 -- First pair of slots (source, target) whose stacks can be merged

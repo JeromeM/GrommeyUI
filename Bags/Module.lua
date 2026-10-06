@@ -169,7 +169,7 @@ local function BuildCategoryOptions(page, width, settings, Changed)
         pcall(drop.SetShortcut, drop, Turbine.UI.Lotro.Shortcut(Turbine.UI.Lotro.ShortcutType.Undefined, ""));
         Grommey.Delay("BagsCategoryDrop", 0.1, Reopen);
     end
-    UI.Label(page, right + 48, zoneY, rightWidth - 48, 38, L("Drag an item here to put it in this category. You can also drop it on a category title in the bag."),
+    UI.Label(page, right + 48, zoneY, rightWidth - 48, 38, L("Drag an item here to put it in this category. In the bag: drop it on a title, or hold Shift while dragging."),
         { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.MiddleLeft; });
 
     -- Items of the category, the cross sends one back to its game category
