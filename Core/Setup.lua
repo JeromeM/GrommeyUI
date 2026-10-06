@@ -36,8 +36,9 @@ local function StepProfile(page, width)
 
     local y = 64;
     UI.Header(page, 0, y, width, L("Profile"));
-    UI.Label(page, 0, y + 32, width, 36, L("A profile holds every setting. Several characters can share one, or each can have its own."),
-        { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+    local note = UI.Note(page, 0, y + 32, width, L("A profile holds every setting. Several characters can share one, or each can have its own."));
+    -- The rest goes down when the note takes more lines
+    y = y + math.max(0, note:GetHeight() - 36);
 
     local items = {};
     for _, name in ipairs(Grommey.Profiles.List()) do table.insert(items, { value = name; text = name; }); end
@@ -102,9 +103,8 @@ local function StepTheme(page, width)
 end
 
 local function StepModules(page, width)
-    UI.Label(page, 0, 0, width, 36, L("Choose the parts of the interface you want. A module that is off leaves the game window it replaces."),
-        { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
-    local y = 44;
+    local note = UI.Note(page, 0, 0, width, L("Choose the parts of the interface you want. A module that is off leaves the game window it replaces."));
+    local y = note:GetHeight() + 10;
     for _, module in ipairs(Grommey.Modules.List()) do
         UI.Toggle(page, 0, y, width, L(module.name), Grommey.Modules.IsEnabled(module.id), function(value)
             Grommey.Modules.SetEnabled(module.id, value);
@@ -126,8 +126,7 @@ local function StepFinish(page, width)
         L("/gui reload - reload the interface"),
     };
     for index, text in ipairs(lines) do UI.Label(page, 0, 110 + index * 26, width, 22, text, { role = "dim"; }); end
-    UI.Label(page, 0, 230, width, 36, L("This assistant can be started again from the General page of the options."),
-        { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+    UI.Note(page, 0, 230, width, L("This assistant can be started again from the General page of the options."));
 end
 
 -- Profile, theme, modules, one step per enabled module that has one, and the end

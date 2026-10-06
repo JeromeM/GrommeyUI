@@ -131,13 +131,15 @@ local function BuildFrameOptions(page, width, key, section)
             end, "accent");
         end
         UI.Toggle(page, 0, y + 30, half, L("Mirrored (right to left)"), settings.mirrored, function(value) settings.mirrored = value; Changed(); end);
+        -- Both columns start under the note of the target of target, when there is one
+        local top = 76;
         if (key == "targettarget") then
-            UI.Label(page, right, y, half, 52, L("Shown when the game tells who your target is targeting. If it never shows up, the game does not give it."),
-                { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+            local note = UI.Note(page, 0, 64, width, L("Shown when the game tells who your target is targeting. If it never shows up, the game does not give it."));
+            top = 64 + note:GetHeight() + 14;
         end
 
         -- Left column: size and name
-        y = 76;
+        y = top;
         UI.Slider(page, 0, y, half, L("Width"), 100, 400, 10, settings.width, function(value) settings.width = value; Changed(); end, " px");
         UI.Toggle(page, 0, y + 54, half, L("Name and level"), settings.showName, function(value) settings.showName = value; Changed(); end);
         UI.Slider(page, 0, y + 84, half, L("Space between bars"), 0, 20, 1, settings.barGap or 2, function(value) settings.barGap = value; Changed(); end, " px");
@@ -146,7 +148,7 @@ local function BuildFrameOptions(page, width, key, section)
         end
 
         -- Right column: the two bars
-        y = 76;
+        y = top;
         UI.Slider(page, right, y, half, L("Morale height"), 6, 40, 1, settings.moraleHeight, function(value) settings.moraleHeight = value; Changed(); end, " px"); y = y + 46;
         y = y + LabeledDropdown(right, y, L("Morale text"), UF.TextModes, settings.moraleText, function(value) settings.moraleText = value; Changed(); end);
         UI.Toggle(page, right, y, half, L("Power bar"), settings.showPower, function(value) settings.showPower = value; Changed(); end); y = y + 30;
@@ -367,6 +369,6 @@ Grommey.Modules.Register({
         UI.Dropdown(page, 0, 166, 300, Translated(UF.MoraleColorModes), settings.player.moraleColorMode or "fixed", function(value)
             for _, key in ipairs(FRAME_KEYS) do settings[key].moraleColorMode = value; end
         end);
-        UI.Label(page, 0, 214, width, 36, L("Each frame replaces the game one. Bars, effects and colours are set in the options."), { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+        UI.Note(page, 0, 214, width, L("Each frame replaces the game one. Bars, effects and colours are set in the options."));
     end;
 });

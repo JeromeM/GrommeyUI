@@ -940,9 +940,8 @@ local function BuildOptions(page, width, settings)
     end);
     UI.Button(page, right, y, half, L("Reset the data"), function() Combats.Reset(); Refresh(); end, "danger");
     y = y + 34;
-    UI.Label(page, 0, y, width, 54,
-        L("Click the title of the window to change the view, the fight name to pick a fight, a bar for its full detail. The game only writes in the combat log what concerns you: the meter cannot show the damage of the other players."),
-        { size = 12; role = "dim"; multiline = true; align = Align.TopLeft; });
+    UI.Note(page, 0, y, width,
+        L("Click the title of the window to change the view, the fight name to pick a fight, a bar for its full detail. The game only writes in the combat log what concerns you: the meter cannot show the damage of the other players."));
 end
 
 ------------------------------------------------------------------------------------------------------------------------------------------
@@ -1036,7 +1035,6 @@ Grommey.Modules.Register({
         UI.Dropdown(page, 0, 82, math.min(width, 300), ViewItems(), CurrentViewItem(settings), function(value) SetViewItem(settings, value); end);
         UI.Toggle(page, 0, 124, width, L("Key figures at the top"), settings.showStrip, function(value) settings.showStrip = value; end);
         UI.Toggle(page, 0, 158, width, L("Class colour for my bars"), settings.classColor, function(value) settings.classColor = value; end);
-        UI.Label(page, 0, 196, width, 54, L("A window with your damage, healing and damage taken for each fight, and a summary of your character. Place it with the move mode."),
-            { size = 12; role = "dim"; multiline = true; align = Align.TopLeft; });
+        UI.Note(page, 0, 196, width, L("A window with your damage, healing and damage taken for each fight, and a summary of your character. Place it with the move mode."));
     end;
 });

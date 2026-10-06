@@ -3,8 +3,8 @@
 
 Grommey.Options = {};
 
-local WIDTH = 800;
-local HEIGHT = 560;
+local WIDTH = 880;
+local HEIGHT = 640;
 local MENU_WIDTH = 190;
 local PAD = 24;
 
@@ -22,7 +22,9 @@ local UI = Grommey.UI;
 local function BuildGeneral(page, width)
     local y = 16;
     UI.Header(page, 0, y, width, L("General"));
-    UI.Label(page, 0, y + 36, width, 40, L("Welcome to GrommeyUI. Pick a theme, then add modules as they come."), { multiline = true; role = "dim"; });
+    local note = UI.Note(page, 0, y + 36, width, L("Welcome to GrommeyUI. Pick a theme, then add modules as they come."));
+    -- The rest goes down when the note is taller than the room it had
+    y = y + math.max(0, note:GetHeight() - 40);
 
     -- Language of GrommeyUI, the game texts (items, effects) keep the client language
     UI.Label(page, 0, y + 84, 260, 18, L("Language"));
@@ -227,10 +229,12 @@ local function BuildLayout(page, width)
     local y = 16;
 
     UI.Header(page, 0, y, width, L("Move frames"));
-    UI.Label(page, 0, y + 32, width, 36, L("Drag the coloured frames to place them. Right click a frame to put it back in place."), { multiline = true; role = "dim"; });
-    UI.Button(page, 0, y + 76, 240, L("Move mode"), function() Grommey.Movers.Enter(); end, "accent");
+    local note = UI.Note(page, 0, y + 32, width, L("Drag the coloured frames to place them. Right click a frame to put it back in place."));
+    -- The rest goes down when the note takes more lines
+    local shift = math.max(0, note:GetHeight() - 36);
+    UI.Button(page, 0, y + 76 + shift, 240, L("Move mode"), function() Grommey.Movers.Enter(); end, "accent");
 
-    y = y + 130;
+    y = y + 130 + shift;
     UI.Toggle(page, 0, y, width, L("Snap to grid"), movers.snap, function(value)
         movers.snap = value;
         Grommey.Profiles.RequestSave();

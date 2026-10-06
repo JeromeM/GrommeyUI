@@ -75,6 +75,123 @@ function Grommey.UI.Frame(parent, x, y, width, height, role, borderRole)
     return frame;
 end
 
+-- Help text in a box that invites to read it: panel background tinted with the theme colour, a line
+-- of that colour on the left, a bigger text. The game neither spaces lines nor justifies a text, and
+-- does not tell how wide a text is: the note lays its text out itself, word by word, from the widths
+-- of the Verdana letters (Core/FontMetrics.lua). Lines get more space between them and all of them
+-- but the last are justified. Returns the box, its height is box:GetHeight().
+local NOTE_PAD = 10;
+local NOTE_SIZE = 15;
+local NOTE_SPACING = 5;             -- added between two lines
+local PIXELS_PER_EM_14 = 12.8;      -- measured in game: Verdana 14 is 12.8 pixels to the em
+local VERDANA_SIZES = { 10, 12, 13, 14, 15, 16, 18, 20, 22, 23 };
+
+-- The Verdana font of the notes, at the size chosen in the theme
+local function NoteFont()
+    local wanted = NOTE_SIZE + (Grommey.Profile.theme.fontOffset or 0);
+    local best = nil;
+    for _, size in ipairs(VERDANA_SIZES) do
+        if (Turbine.UI.Lotro.Font["Verdana" .. size] and (best == nil or math.abs(size - wanted) < math.abs(best - wanted))) then best = size; end
+    end
+    best = best or 14;
+    return Turbine.UI.Lotro.Font["Verdana" .. best] or Turbine.UI.Lotro.Font.Verdana14, best;
+end
+
+local function TextWidth(text, size)
+    local metrics = Grommey.FontMetrics;
+    local units = 0;
+    -- One UTF-8 letter at a time: accented letters take two bytes
+    for letter in string.gmatch(text, "[%z\1-\127\194-\244][\128-\191]*") do
+        units = units + (metrics.widths[letter] or metrics.average);
+    end
+    return units / metrics.unitsPerEm * PIXELS_PER_EM_14 * size / 14;
+end
+
+-- The words of the text in lines no wider than width: { { words = { { text, width } }, width, last } }
+local function Wrap(text, width, size)
+    local lines = {};
+    local space = TextWidth(" ", size);
+    for paragraph in string.gmatch((text or "") .. "\n", "(.-)\n") do
+        local line = { words = {}; width = 0; };
+        for word in string.gmatch(paragraph, "%S+") do
+            local wordWidth = TextWidth(word, size);
+            if (#line.words > 0 and line.width + space + wordWidth > width) then
+                table.insert(lines, line);
+                line = { words = {}; width = 0; };
+            end
+            if (#line.words > 0) then line.width = line.width + space; end
+            table.insert(line.words, { text = word; width = wordWidth; });
+            line.width = line.width + wordWidth;
+        end
+        line.last = true;
+        table.insert(lines, line);
+    end
+    return lines, space;
+end
+
+local function TextArea(width)
+    return width - 2 * NOTE_PAD - 5;
+end
+
+function Grommey.UI.NoteHeight(width, text)
+    local _, size = NoteFont();
+    local lines = Wrap(text, TextArea(width), size);
+    return #lines * (size + 1) + (#lines - 1) * NOTE_SPACING + 2 * NOTE_PAD + 2;
+end
+
+function Grommey.UI.Note(parent, x, y, width, text)
+    local font, size = NoteFont();
+    local lines, space = Wrap(text, TextArea(width), size);
+    local lineHeight = size + 1;
+    local height = #lines * lineHeight + (#lines - 1) * NOTE_SPACING + 2 * NOTE_PAD + 2;
+    local box = Grommey.UI.Frame(parent, x, y, width, height, "panel", "border");
+    box.inner:SetMouseVisible(false);
+    box:SetMouseVisible(false);
+
+    local mark = Turbine.UI.Control();
+    mark:SetParent(box.inner);
+    mark:SetPosition(0, 0);
+    mark:SetSize(3, height - 2);
+    mark:SetMouseVisible(false);
+
+    -- One label per word, placed by hand
+    local labels = {};
+    local area = TextArea(width);
+    for index, line in ipairs(lines) do
+        local gap = space;
+        if (not line.last and #line.words > 1) then
+            local wordsWidth = line.width - space * (#line.words - 1);
+            gap = (area - wordsWidth) / (#line.words - 1);
+        end
+        local left = NOTE_PAD + 3;
+        local top = NOTE_PAD - 1 + (index - 1) * (lineHeight + NOTE_SPACING);
+        for _, word in ipairs(line.words) do
+            local label = Turbine.UI.Label();
+            label:SetParent(box.inner);
+            label:SetPosition(math.floor(left + 0.5), top);
+            -- A little wider than measured, so a letter is never cut
+            label:SetSize(math.ceil(word.width) + 4, lineHeight + 2);
+            label:SetFont(font);
+            label:SetMultiline(false);
+            label:SetTextAlignment(Align.MiddleLeft);
+            label:SetMouseVisible(false);
+            label:SetText(word.text);
+            table.insert(labels, label);
+            left = left + word.width + gap;
+        end
+    end
+
+    -- A light tint of the theme colour, on the box and on the text, so it stands out from the page
+    Theme.Track(function()
+        mark:SetBackColor(Theme.Color("accent"));
+        box.inner:SetBackColor(Theme.Mix("panel", "accent", 0.1));
+        box:SetBackColor(Theme.Mix("border", "accent", 0.35));
+        local color = Theme.Mix("text", "accent", 0.25);
+        for _, label in ipairs(labels) do label:SetForeColor(color); end
+    end);
+    return box;
+end
+
 function Grommey.UI.Separator(parent, x, y, width)
     local line = Turbine.UI.Control();
     line:SetParent(parent);

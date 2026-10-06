@@ -47,6 +47,11 @@ Do not load `~GrommeyUIReloader` yourself: GrommeyUI uses it to reload itself.
 Texts are written in English in the code and translated in `Locales/fr.lua` and `Locales/de.lua`.
 `python3 tools/check_translations.py` lists the missing and unused translations.
 
+## Credits
+
+The travel skills of the travel bar (ids, icons and names in English, French and German) come from
+[LotroCompanion/lotro-data](https://github.com/LotroCompanion/lotro-data), thanks to its authors.
+
 ## License
 
 [MIT](LICENSE)

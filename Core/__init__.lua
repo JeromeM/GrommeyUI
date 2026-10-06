@@ -12,6 +12,7 @@ import "GrommeyUI.Core.Storage";
 import "GrommeyUI.Core.Profiles";
 import "GrommeyUI.Core.Theme";
 import "GrommeyUI.Core.Money";
+import "GrommeyUI.Core.FontMetrics";
 import "GrommeyUI.Core.Widgets";
 import "GrommeyUI.Core.Window";
 import "GrommeyUI.Core.Movers";

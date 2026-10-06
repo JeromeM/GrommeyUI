@@ -165,10 +165,10 @@ local function Build()
     UI.Button(holder, 168, 0, 160, L("Import"), function() mode = "import"; Build(); end, (mode == "import") and "accent" or nil);
 
     if (mode == "export") then
-        UI.Label(holder, 0, 40, width, 36, string.format(L("Code of the profile \"%s\". Select it, copy it with Ctrl+C and share it."), Grommey.ProfileName),
-            { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+        local note = UI.Note(holder, 0, 36, width, string.format(L("Code of the profile \"%s\". Select it, copy it with Ctrl+C and share it."), Grommey.ProfileName));
         local code = Grommey.ProfileShare.Export(Grommey.Profile);
-        local box = CodeBox(holder, 0, 80, width, 250, code);
+        local boxTop = 36 + note:GetHeight() + 6;
+        local box = CodeBox(holder, 0, boxTop, width, 330 - boxTop, code);
         -- Clicking in the code selects all of it
         box.FocusGained = function() pcall(box.SelectAll, box); end
         UI.Button(holder, 0, 342, 200, L("Select all"), function() SelectAll(box); end, "accent");
@@ -179,9 +179,9 @@ local function Build()
         return;
     end
 
-    UI.Label(holder, 0, 40, width, 36, L("Paste a profile code with Ctrl+V. It becomes a new profile, your current ones stay as they are."),
-        { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
-    local box = CodeBox(holder, 0, 80, width, 220, "");
+    local note = UI.Note(holder, 0, 36, width, L("Paste a profile code with Ctrl+V. It becomes a new profile, your current ones stay as they are."));
+    local boxTop = 36 + note:GetHeight() + 6;
+    local box = CodeBox(holder, 0, boxTop, width, 300 - boxTop, "");
     UI.Label(holder, 0, 312, 200, 18, L("Name of the new profile"));
     local nameBox = UI.TextInput(holder, 0, 332, 240, L("Imported"));
     local status = UI.Label(holder, 0, 368, width, 22, "", { size = 12; role = "danger"; });

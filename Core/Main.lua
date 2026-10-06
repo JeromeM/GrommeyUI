@@ -67,6 +67,8 @@ function Grommey.Command:Execute(command, arguments)
         Grommey.Meter.Command(arguments);
     elseif (action == "combatlog") then
         Grommey.Meter.Log.Command(arguments);
+    elseif (action == "skills") then
+        if (Grommey.ActionBarsSkillsReport) then Grommey.ActionBarsSkillsReport(); end
     elseif (action == "consumables") then
         if (Grommey.ActionBarsConsumablesReport) then Grommey.ActionBarsConsumablesReport(); end
     elseif (action == "elements") then

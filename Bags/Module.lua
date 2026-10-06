@@ -262,6 +262,6 @@ Grommey.Modules.Register({
         UI.Toggle(page, 0, 34, width, L("Show new items in their own section"), settings.showNew, function(value) settings.showNew = value; end);
         UI.Slider(page, 0, 76, 300, L("Items per row"), 3, 12, 1, settings.itemsPerRow, function(value) settings.itemsPerRow = value; end);
         UI.Slider(page, 0, 126, 300, L("Slot size"), 36, 48, 2, settings.slotSize, function(value) settings.slotSize = value; end, " px");
-        UI.Label(page, 0, 186, width, 36, L("The bag replaces the game bags. Open it with the usual bag key."), { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+        UI.Note(page, 0, 186, width, L("The bag replaces the game bags. Open it with the usual bag key."));
     end;
 });

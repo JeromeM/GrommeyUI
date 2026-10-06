@@ -271,7 +271,7 @@ local function BuildOptions(page, width, settings)
         end);
         y = y + 30;
     end
-    UI.Label(page, 0, y, width, 36, L("Place the areas with the move mode. The game does not let plugins cancel a buff."), { size = 12; role = "dim"; });
+    UI.Note(page, 0, y, width, L("Place the areas with the move mode. The game does not let plugins cancel a buff."));
 end
 
 ------------------------------------------------------------------------------------------------------------------------------------------
@@ -342,6 +342,6 @@ Grommey.Modules.Register({
                 unitFrames.player.effects.show = value;
             end);
         end
-        UI.Label(page, 0, 180, width, 36, L("Two areas at the top right, next to the minimap. Place them with the move mode."), { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+        UI.Note(page, 0, 180, width, L("Two areas at the top right, next to the minimap. Place them with the move mode."));
     end;
 });

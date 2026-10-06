@@ -3,8 +3,10 @@
 -- skills differ from one class to another. Plugins cannot bind keys: these bars are used with the mouse.
 --
 -- Unlocked bars show their empty slots and a small cross on each shortcut to take it off.
--- A consumables bar fills itself with the food, potions and scrolls found in the backpack;
--- its cross hides an item from the bar.
+-- Automatic bars fill themselves from the backpack: the consumables bar with the food, potions and
+-- scrolls, the travel bar with the travel skills chosen by the player (ActionBars/Travel.lua) and the
+-- travel items. Their cross hides an item from the bar.
+-- Any bar can show its name above it.
 
 local Theme = Grommey.Theme;
 local UI = Grommey.UI;
@@ -16,10 +18,24 @@ local MAX_BARS = 10;
 local UPDATE_DELAY = 0.1;
 local FADED_OPACITY = 0.25;
 local SHORTCUTS_FILE = "GrommeyUI_ActionBars";
-local SCAN_DELAY = 1;       -- consumables bars look at the backpack every second
--- Game item categories of the consumables, same list as the bag
-local CONSUMABLES = (Grommey.Bags and Grommey.Bags.CategoryByKey and Grommey.Bags.CategoryByKey.Consumables
-    and Grommey.Bags.CategoryByKey.Consumables.ids) or { 28, 55, 57, 189, 190, 292, 25 };
+local SCAN_DELAY = 1;       -- automatic bars look at the backpack every second
+local TITLE = 16;           -- height of the name shown above a bar
+
+-- Game item categories of a category of the bag, or the given list when the bag is not there
+local function BagCategory(key, fallback)
+    local category = Grommey.Bags and Grommey.Bags.CategoryByKey and Grommey.Bags.CategoryByKey[key];
+    return (category and category.ids) or fallback;
+end
+
+-- Kinds of automatic bars: their name and the item categories they take from the backpack
+local AUTO = {
+    consumables = { name = "Consumables"; categories = BagCategory("Consumables", { 28, 55, 57, 189, 190, 292, 25 });
+        description = "This bar fills itself with the food, potions and scrolls of your backpack, with their total quantity. Unlock the bars and use the cross to hide an item you do not want here."; };
+    travel = { name = "Travel"; categories = BagCategory("Travel", { 191, 175, 186 });
+        description = "This bar shows the travel skills you chose among the ones your character knows, then the travel items of your backpack. Unlock the bars and use the cross to take a skill or an item off the bar."; };
+};
+local AUTO_ORDER = { "consumables", "travel" };
+local CONSUMABLES = AUTO.consumables.categories;
 
 local bars = {};            -- bar id = window
 local settingsRoot = nil;
@@ -179,8 +195,13 @@ end
 ------------------------------------------------------------------------------------------------------------------------------------------
 -- Consumables found in the backpack, one entry per kind of item with the total quantity
 
-local categoryRank = {};
-for rank, category in ipairs(CONSUMABLES) do categoryRank[category] = rank; end
+-- Rank of each category in each kind of automatic bar, for the order of the items
+local categoryRanks = {};
+for kind, info in pairs(AUTO) do
+    categoryRanks[kind] = {};
+    for rank, category in ipairs(info.categories) do categoryRanks[kind][category] = rank; end
+end
+local categoryRank = categoryRanks.consumables;
 
 local function Call(object, method, ...)
     if (object == nil or object[method] == nil) then return nil; end
@@ -191,7 +212,8 @@ end
 
 local reportedFailure = false;
 
-local function ScanConsumables(hidden)
+local function ScanItems(kind, hidden, barSettings)
+    local categoryRank = categoryRanks[kind] or categoryRanks.consumables;
     local entries, byKey = {}, {};
     local backpack = Call(player, "GetBackpack");
     if (backpack == nil) then return entries; end
@@ -227,6 +249,18 @@ local function ScanConsumables(hidden)
         if (a.category ~= b.category) then return categoryRank[a.category] < categoryRank[b.category]; end
         return a.name < b.name;
     end);
+    -- The order chosen for the bar: by category (above), by name or the player's own
+    if (barSettings) then Grommey.ItemOrder.Sort(entries, barSettings); end
+    -- Travel bar: the chosen travel skills first, made from their id, then the items if wanted
+    if (kind == "travel") then
+        if (barSettings and barSettings.travelItems == false) then entries = {}; end
+        local skills = {};
+        for _, skill in ipairs(Grommey.Travel.Chosen(barSettings and barSettings.travelSort)) do
+            local ok, shortcut = pcall(Turbine.UI.Lotro.Shortcut, ShortcutType.Skill, skill.id);
+            if (ok and shortcut) then table.insert(skills, { name = skill.id; count = 0; shortcut = shortcut; }); end
+        end
+        for index = #skills, 1, -1 do table.insert(entries, 1, skills[index]); end
+    end
     return entries;
 end
 
@@ -255,6 +289,38 @@ function Grommey.ActionBarsConsumablesReport()
     Grommey.Print(saved and L("Report written to the plugin data folder.") or "Report: save failed");
 end
 
+-- The skills of the character (/gui skills), to find out whether travel skills can be put on a bar:
+-- name, type, and the shortcut the game gives for it. Written to GrommeyUI_Diagnostic like the report above.
+function Grommey.ActionBarsSkillsReport()
+    local lines = {};
+    local function Add(text) table.insert(lines, text); end
+    local types = {};
+    for name, value in pairs((Turbine.Gameplay and Turbine.Gameplay.SkillType) or {}) do
+        if (type(value) == "number") then table.insert(types, name .. "=" .. value); end
+    end
+    table.sort(types);
+    Add("SkillType: " .. table.concat(types, ", "));
+    local methods = {};
+    for _, method in ipairs({ "GetTrainedSkills", "GetUntrainedSkills" }) do
+        table.insert(methods, method .. " " .. tostring(player and player[method] ~= nil));
+    end
+    Add(table.concat(methods, " | "));
+    local list = Call(player, "GetTrainedSkills");
+    local count = Call(list, "GetCount") or 0;
+    Add("trained skills: " .. count);
+    for index = 1, count do
+        local skill = Call(list, "GetItem", index);
+        local info = Call(skill, "GetSkillInfo");
+        local ok, shortcut = pcall(Turbine.UI.Lotro.Shortcut, skill);
+        local data = (ok and shortcut and Call(shortcut, "GetData")) or tostring(shortcut);
+        local shortcutType = ok and shortcut and Call(shortcut, "GetType");
+        Add(index .. " " .. tostring(Call(info, "GetName")) .. " | type " .. tostring(Call(info, "GetType"))
+            .. " | icon " .. tostring(Call(info, "GetIconImageID")) .. " | shortcut " .. tostring(ok) .. " " .. tostring(shortcutType) .. " " .. tostring(data));
+    end
+    local saved = pcall(Turbine.PluginData.Save, Turbine.DataScope.Account, "GrommeyUI_Diagnostic", lines);
+    Grommey.Print(saved and L("Report written to the plugin data folder.") or "Report: save failed");
+end
+
 ------------------------------------------------------------------------------------------------------------------------------------------
 -- One bar: a window holding its slots in lines
 
@@ -269,25 +335,46 @@ local function CreateBar(barSettings, position)
     local columns = math.max(1, math.min(barSettings.perLine, barSettings.slots));
     local lines = math.ceil(barSettings.slots / columns);
     local step = CELL + barSettings.spacing;
-    window:SetSize(columns * step - barSettings.spacing, lines * step - barSettings.spacing);
+    local top = barSettings.showTitle and TITLE or 0;
+    local width = columns * step - barSettings.spacing;
+    window:SetSize(width, top + lines * step - barSettings.spacing);
 
-    local auto = (barSettings.kind == "consumables");
+    -- Name of the bar above it, outlined to stay readable over the game
+    if (barSettings.showTitle) then
+        window.title = Turbine.UI.Label();
+        window.title:SetParent(window);
+        window.title:SetPosition(1, 0);
+        window.title:SetSize(width - 2, TITLE - 2);
+        window.title:SetFont(Theme.Font(11, false));
+        window.title:SetFontStyle(Turbine.UI.FontStyle.Outline);
+        window.title:SetOutlineColor(Turbine.UI.Color(0, 0, 0));
+        window.title:SetForeColor(Theme.Color("text"));
+        window.title:SetTextAlignment(Turbine.UI.ContentAlignment.BottomLeft);
+        window.title:SetMouseVisible(false);
+        window.title:SetText(barSettings.name);
+    end
+
+    local auto = (AUTO[barSettings.kind] ~= nil);
     for index = 1, barSettings.slots do
         local slot = CreateSlot(window, id, index, auto);
-        slot:SetPosition(((index - 1) % columns) * step, math.floor((index - 1) / columns) * step);
+        slot:SetPosition(((index - 1) % columns) * step, top + math.floor((index - 1) / columns) * step);
         window.slots[index] = slot;
     end
 
     -- Shows or hides the bar from its conditions, and the empty slots and crosses from the lock
     window.Refresh = function()
         local unlocked = Unlocked();
+        local anyShown = false;
         for _, slot in ipairs(window.slots) do
             local filled = slot.IsFilled();
             slot:SetVisible(filled or unlocked or barSettings.showEmpty);
+            anyShown = anyShown or filled or unlocked or barSettings.showEmpty;
             -- The bag item control can have the field behind it, the quickslot cannot
             slot.field:SetVisible(not slot.QuickslotFilled());
             slot.clear:SetVisible(filled and unlocked);
         end
+        -- No name over an empty bar
+        if (window.title) then window.title:SetVisible(anyShown); end
 
         local shown = not Grommey.HudHidden;
         if (shown and not unlocked) then
@@ -300,11 +387,11 @@ local function CreateBar(barSettings, position)
         window:SetVisible(shown);
     end
 
-    -- Consumables bar: puts the backpack content in the slots when it changes
+    -- Automatic bar: puts the backpack content in the slots when it changes
     window.signature = nil;
     window.Scan = function()
         barSettings.hidden = barSettings.hidden or {};
-        local entries = ScanConsumables(barSettings.hidden);
+        local entries = ScanItems(barSettings.kind, barSettings.hidden, barSettings);
         local parts = {};
         for index = 1, math.min(#entries, #window.slots) do
             table.insert(parts, entries[index].name .. "=" .. entries[index].count);
@@ -329,6 +416,8 @@ local function CreateBar(barSettings, position)
         window.Refresh();
     end
     window.Hide = function(name)
+        -- A travel skill is taken off the choice, it comes back from the choice window
+        if (Grommey.Travel.IsSkill(name)) then Grommey.Travel.SetChosen(name, false); return; end
         barSettings.hidden = barSettings.hidden or {};
         barSettings.hidden[name] = true;
         Grommey.Profiles.RequestSave();
@@ -404,12 +493,13 @@ local function NewBar(kind, root)
     root.nextNumber = number + 1;
     local bar = {
         id = "bar" .. number; name = string.format(L("Bar %d"), number); enabled = true;
-        slots = 12; perLine = 12; spacing = 2; visibility = "always"; fade = false; showEmpty = false;
+        slots = 12; perLine = 12; spacing = 2; visibility = "always"; fade = false; showEmpty = true;
     };
-    if (kind == "consumables") then
+    if (AUTO[kind] ~= nil) then
         bar.kind = kind;
-        bar.name = L("Consumables");
+        bar.name = L(AUTO[kind].name);
         bar.hidden = {};
+        bar.showTitle = true;
     end
     table.insert(root.bars, bar);
     return bar;
@@ -426,6 +516,10 @@ local function EnsureBars(root)
     if (not root.consumablesAdded) then
         root.consumablesAdded = true;
         if (#root.bars < MAX_BARS) then NewBar("consumables", root); end
+    end
+    if (not root.travelAdded) then
+        root.travelAdded = true;
+        if (#root.bars < MAX_BARS) then NewBar("travel", root); end
     end
 end
 
@@ -452,27 +546,36 @@ local function BuildOptions(page, width, settings)
     local items = {};
     for _, bar in ipairs(settings.bars) do table.insert(items, { value = bar.id; text = bar.name; }); end
 
+    -- Creating a bar: one list for every kind, so each one says what it is
+    local labelWidth = 130;
+    local listWidth = math.min(260, width - labelWidth - 160);
     local y = 52;
-    if (#items > 0) then
-        UI.Dropdown(page, 0, y, half, items, selectedBar, function(value) selectedBar = value; Reopen(); end);
-    end
-    -- Buttons on their own line, wide enough for their text
-    y = 90;
-    local buttonWidth = 170;
     if (#settings.bars < MAX_BARS) then
-        UI.Button(page, 0, y, buttonWidth, L("New bar"), function()
-            selectedBar = NewBar().id;
+        local kinds = { { value = "empty"; text = L("Empty bar (you fill it)"); } };
+        for _, kind in ipairs(AUTO_ORDER) do
+            table.insert(kinds, { value = kind; text = string.format(L("Automatic bar: %s"), L(AUTO[kind].name)); });
+        end
+        local newKind = "empty";
+        UI.Label(page, 0, y + 4, labelWidth, 18, L("Create a bar:"));
+        UI.Dropdown(page, labelWidth, y, listWidth, kinds, newKind, function(value) newKind = value; end);
+        UI.Button(page, labelWidth + listWidth + 10, y, 120, L("Create"), function()
+            selectedBar = NewBar(newKind ~= "empty" and newKind or nil).id;
             Changed();
             Reopen();
         end, "accent");
-        UI.Button(page, buttonWidth + 10, y, buttonWidth, L("Consumables"), function()
-            selectedBar = NewBar("consumables").id;
-            Changed();
-            Reopen();
-        end, "accent");
+    else
+        UI.Label(page, 0, y + 4, width, 18, string.format(L("%d bars at most."), MAX_BARS), { role = "dim"; });
+    end
+    UI.Separator(page, 0, y + 38, width);
+
+    -- The bar being set up
+    y = 102;
+    if (#items > 0) then
+        UI.Label(page, 0, y + 4, labelWidth, 18, L("Bar to set up:"));
+        UI.Dropdown(page, labelWidth, y, listWidth, items, selectedBar, function(value) selectedBar = value; Reopen(); end);
     end
     if (selectedBar) then
-        UI.Button(page, width - buttonWidth, y, buttonWidth, L("Delete"), function()
+        UI.Button(page, labelWidth + listWidth + 10, y, math.max(120, width - labelWidth - listWidth - 10), L("Delete this bar"), function()
             for index, bar in ipairs(settings.bars) do
                 if (bar.id == selectedBar) then table.remove(settings.bars, index); break; end
             end
@@ -486,15 +589,20 @@ local function BuildOptions(page, width, settings)
 
     local bar = BarSettings(selectedBar or "");
     if (bar == nil) then
-        UI.Label(page, 0, 140, width, 20, L("No bar yet."), { role = "dim"; });
+        UI.Label(page, 0, 150, width, 20, L("No bar yet."), { role = "dim"; });
         return;
     end
 
-    y = 140;
+    y = 150;
     UI.Toggle(page, 0, y, half, L("Show this bar"), bar.enabled, function(value) bar.enabled = value; Changed(); end);
-    local auto = (bar.kind == "consumables");
-    if (not auto) then
+    local auto = (AUTO[bar.kind] ~= nil);
+    -- Automatic bars have no empty slots to show: their name option takes that place
+    if (auto) then
+        UI.Toggle(page, right, y, half, L("Name above the bar"), bar.showTitle == true, function(value) bar.showTitle = value; Changed(); end);
+    else
         UI.Toggle(page, right, y, half, L("Show the empty slots"), bar.showEmpty, function(value) bar.showEmpty = value; Changed(); end);
+        y = y + 32;
+        UI.Toggle(page, 0, y, half, L("Name above the bar"), bar.showTitle == true, function(value) bar.showTitle = value; Changed(); end);
     end
     y = y + 40;
     UI.Slider(page, 0, y, half, auto and L("Maximum items") or L("Number of slots"), 1, 36, 1, bar.slots, function(value) bar.slots = value; Changed(); end);
@@ -512,6 +620,34 @@ local function BuildOptions(page, width, settings)
     UI.Toggle(page, 0, y, width, L("Faded until the mouse is over it"), bar.fade, function(value) bar.fade = value; Changed(); end);
     y = y + 40;
 
+    if (bar.kind == "travel") then
+        UI.Button(page, 0, y + 20, half, L("Choose the travel skills"), function() Grommey.Travel.OpenPicker(bar.travelSort); end, "accent");
+        UI.Label(page, right, y, half, 18, L("Order"));
+        UI.Dropdown(page, right, y + 20, half, Translated(Grommey.Travel.SORTS), bar.travelSort or "family", function(value)
+            bar.travelSort = value;
+            Changed();
+        end);
+        y = y + 60;
+        UI.Toggle(page, 0, y, width, L("Travel items of the backpack after the skills"), bar.travelItems ~= false, function(value) bar.travelItems = value; Changed(); end);
+        y = y + 40;
+    end
+    if (bar.kind == "consumables") then
+        UI.Button(page, 0, y + 20, half, L("Set my order"), function()
+            Grommey.ItemOrder.Open(bar,
+                function() return ScanItems(bar.kind, bar.hidden or {}, bar); end,
+                function()
+                    Grommey.Profiles.RequestSave();
+                    if (bars[bar.id]) then bars[bar.id].signature = nil; bars[bar.id].Scan(); end
+                    Reopen();
+                end);
+        end, "accent");
+        UI.Label(page, right, y, half, 18, L("Order"));
+        UI.Dropdown(page, right, y + 20, half, Translated(Grommey.ItemOrder.SORTS), bar.itemSort or "category", function(value)
+            bar.itemSort = value;
+            Changed();
+        end);
+        y = y + 60;
+    end
     if (auto) then
         local hiddenCount = 0;
         for _ in pairs(bar.hidden or {}) do hiddenCount = hiddenCount + 1; end
@@ -523,12 +659,10 @@ local function BuildOptions(page, width, settings)
             end);
             y = y + 40;
         end
-        UI.Label(page, 0, y, width, 60, L("This bar fills itself with the food, potions and scrolls of your backpack, with their total quantity. Unlock the bars and use the cross to hide an item you do not want here."),
-            { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+        UI.Note(page, 0, y, width, L(AUTO[bar.kind].description));
         return;
     end
-    UI.Label(page, 0, y, width, 60, L("Drag skills, items or chat commands onto the slots. Unlock the bars to see the empty slots and take shortcuts off with the cross. Place the bars with the move mode. The game does not let plugins use keys: these bars are clicked."),
-        { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+    UI.Note(page, 0, y, width, L("Drag skills, items or chat commands onto the slots. Unlock the bars to see the empty slots and take shortcuts off with the cross. Place the bars with the move mode. The game does not let plugins use keys: these bars are clicked."));
 end
 
 ------------------------------------------------------------------------------------------------------------------------------------------
@@ -545,6 +679,14 @@ Grommey.Modules.Register({
         settingsRoot = settings;
         player = Turbine.Gameplay.LocalPlayer.GetInstance();
         shortcuts = Grommey.Storage.Load(Turbine.DataScope.Character, SHORTCUTS_FILE) or {};
+        -- The travel bars show a change of the choice at once
+        Grommey.Travel.Start(player);
+        Grommey.Travel.OnChange(function()
+            for id, window in pairs(bars) do
+                local barSettings = BarSettings(id);
+                if (barSettings and barSettings.kind == "travel") then window.Scan(); end
+            end
+        end);
         EnsureBars(settings);
         Grommey.Profiles.RequestSave();
         Build();
@@ -562,6 +704,7 @@ Grommey.Modules.Register({
     Disable = function()
         for _, entry in ipairs(callbacks) do Grommey.RemoveCallback(entry.object, entry.eventName, entry.callback); end
         callbacks = {};
+        Grommey.Travel.Stop();
         DestroyBars();
         settingsRoot = nil;
     end;
@@ -572,13 +715,14 @@ Grommey.Modules.Register({
         EnsureBars(settings);
         local y = 0;
         for _, bar in ipairs(settings.bars) do
-            local text = (bar.kind == "consumables") and L("Consumables bar (fills itself from the backpack)") or bar.name;
+            local text = bar.name;
+            if (bar.kind == "consumables") then text = L("Consumables bar (fills itself from the backpack)"); end
+            if (bar.kind == "travel") then text = L("Travel bar (fills itself from the backpack)"); end
             UI.Toggle(page, 0, y, width, text, bar.enabled, function(value) bar.enabled = value; end);
             y = y + 34;
             if (y > 240) then break; end
         end
         UI.Toggle(page, 0, y + 10, width, L("Locked (no empty slots or crosses)"), settings.locked, function(value) settings.locked = value; end);
-        UI.Label(page, 0, y + 54, width, 52, L("Drag skills and items onto the bars. These bars are used with the mouse, the game does not let plugins use keys. More bars can be added in the options."),
-            { size = 12; role = "dim"; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+        UI.Note(page, 0, y + 54, width, L("Drag skills and items onto the bars. These bars are used with the mouse, the game does not let plugins use keys. More bars can be added in the options."));
     end;
 });
