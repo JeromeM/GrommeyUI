@@ -11,13 +11,13 @@ local function SetNativeBags(enabled)
     end
 end
 
--- Two bag plugins at once fight over the bag keys, say so
+-- Two bag plugins at once fight over the bag keys, say so: any loaded plugin with "bag" in its name
 local function WarnAboutOtherBagPlugins()
     local ok, plugins = pcall(Turbine.PluginManager.GetLoadedPlugins);
     if (not ok or plugins == nil) then return; end
     for _, loaded in ipairs(plugins) do
         local name = loaded.Name or "";
-        if (name == "Prime Bags" or name == "HugeBag") then
+        if (string.find(string.lower(name), "bag", 1, true) and not string.find(name, "GrommeyUI", 1, true)) then
             Grommey.Print(string.format(L("%s is also loaded, unload it to avoid two bag windows: /plugins unload %s"), name, name));
         end
     end
