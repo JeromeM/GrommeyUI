@@ -62,7 +62,7 @@ end
 
 local function Actor(fight)
     if (fight == nil or state.actor == nil) then return nil; end
-    return fight.data[state.mode][state.actor];
+    return Meter.ActorFor(fight, state.mode, state.actor);
 end
 
 ------------------------------------------------------------------------------------------------------------------------------------------

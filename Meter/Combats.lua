@@ -11,6 +11,9 @@
 --   heal      healing, by healer (you, and whoever heals you); targets = who was healed
 --   power     power restored, by who restored it; targets = who got it
 -- Damage to power is left out, as in Combat Analysis.
+-- Pets: in the chat of the player's own actions, a line whose author is not the player comes from
+-- the pet (as Combat Analysis reads it). Pets are kept as actors of their own, listed in fight.pets,
+-- and added to the player only when shown (Combats.MergedActor), as the options ask.
 -- On top of that each fight counts interrupts, corruptions removed, deaths, kills and temporary morale.
 
 Grommey.Meter = Grommey.Meter or {};
@@ -42,7 +45,7 @@ Combats.version = 0;
 local COUNTERS = { "interruptsDone", "interruptsTaken", "dispels", "deaths", "kills", "bubble", "bubbleHits" };
 
 local function NewFight(now)
-    local fight = { start = now; last = now; data = {}; totals = {}; counters = {}; };
+    local fight = { start = now; last = now; data = {}; totals = {}; counters = {}; pets = {}; };
     for _, mode in ipairs(Combats.MODES) do
         fight.data[mode] = {};
         fight.totals[mode] = 0;
@@ -170,6 +173,48 @@ function Combats.MergedSkills(fight, mode)
     return merged;
 end
 
+-- Pets of a fight, sorted by name
+function Combats.Pets(fight)
+    local list = {};
+    for name in pairs((fight and fight.pets) or {}) do table.insert(list, name); end
+    table.sort(list);
+    return list;
+end
+
+-- Separates the pet from the skill in the name of a merged skill: "Raven|Peck"
+Combats.PET_SEPARATOR = "|";
+
+-- The player and the pets of a view as one actor. Pet skills are named "pet|skill", the targets
+-- are added up. withYou false gives the pets alone. Nil when there is nothing.
+function Combats.MergedActor(fight, mode, you, withYou)
+    if (fight == nil) then return nil; end
+    local actors = fight.data[mode];
+    local base = withYou and actors[you] or nil;
+    local list = {};
+    if (base ~= nil) then table.insert(list, base); end
+    for _, pet in ipairs(Combats.Pets(fight)) do
+        if (pet ~= you and actors[pet] ~= nil) then table.insert(list, actors[pet]); end
+    end
+    if (#list == 0) then return nil; end
+    if (#list == 1 and list[1] == base) then return base; end
+    local merged = { name = withYou and you or "*pets"; total = 0; all = NewStats(you); skills = {}; targets = {}; merged = true; };
+    for _, actor in ipairs(list) do
+        local prefix = (actor ~= base) and (actor.name .. Combats.PET_SEPARATOR) or "";
+        merged.total = merged.total + actor.total;
+        MergeStats(merged.all, actor.all);
+        for name, stats in pairs(actor.skills) do
+            local key = prefix .. name;
+            merged.skills[key] = merged.skills[key] or NewStats(key);
+            MergeStats(merged.skills[key], stats);
+        end
+        for name, stats in pairs(actor.targets) do
+            merged.targets[name] = merged.targets[name] or NewStats(name);
+            MergeStats(merged.targets[name], stats);
+        end
+    end
+    return merged;
+end
+
 local function Record(fight, mode, actorName, skillName, targetName, event)
     local amount = event.amount or 0;
     local actors = fight.data[mode];
@@ -258,6 +303,10 @@ function Combats.Add(event, now)
         if (current == nil) then Combats.StartFight(now); end
         local source, target = event.source or "?", event.target or "?";
         if (IsOutgoing(event)) then
+            if (event.channel ~= nil and event.byYou == false) then
+                current.pets[source] = true;
+                overall.pets[source] = true;
+            end
             RecordBoth("damage", source, event.skill, target, event);
             RecordBoth("enemies", target, event.skill, source, event);
         else
@@ -307,7 +356,7 @@ end
 local SAVE_VERSION = 1;
 
 local function ExportFight(fight, isOverall)
-    local copy = { data = fight.data; totals = fight.totals; counters = fight.counters; };
+    local copy = { data = fight.data; totals = fight.totals; counters = fight.counters; pets = fight.pets; };
     if (isOverall) then
         copy.time = math.floor(fight.time + 0.5);
     else
@@ -331,6 +380,9 @@ local function ImportFight(saved, isOverall)
     end
     for _, counter in ipairs(COUNTERS) do
         if (type(saved.counters) == "table" and tonumber(saved.counters[counter])) then fight.counters[counter] = tonumber(saved.counters[counter]); end
+    end
+    if (type(saved.pets) == "table") then
+        for name in pairs(saved.pets) do fight.pets[name] = true; end
     end
     if (isOverall) then
         fight.time = tonumber(saved.time) or 0;
@@ -436,11 +488,17 @@ function Combats.Types(stats)
 end
 
 -- What concerns the player in a fight: keys for the summary of the window
-function Combats.Summary(fight, you, now)
+-- withPets: the pets' damage and healing are added to the player's
+function Combats.Summary(fight, you, now, withPets)
     if (fight == nil) then return nil; end
-    local function Of(mode, name) return fight.data[mode][name]; end
+    local function Of(mode, name)
+        if (withPets) then return Combats.MergedActor(fight, mode, name, true); end
+        return fight.data[mode][name];
+    end
     local summary = { duration = Combats.Duration(fight, now); counters = fight.counters; };
     summary.damage = Of("damage", you);
+    local pets = Combats.MergedActor(fight, "damage", you, false);
+    summary.petDamage = pets and pets.total or 0;
     summary.taken = NewStats("");
     for _, actor in pairs(fight.data.taken) do
         local victim = actor.targets[you];

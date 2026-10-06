@@ -23,7 +23,7 @@ local Meter = Grommey.Meter;
 Meter.VIEWS = {
     { key = "summary"; name = "My summary"; groups = {}; };
     { key = "damage"; name = "Damage done"; groups = {
-        { key = "skills"; name = "by skill"; }, { key = "targets"; name = "by target"; } }; };
+        { key = "skills"; name = "by skill"; }, { key = "targets"; name = "by target"; }, { key = "pets"; name = "pets"; } }; };
     { key = "taken"; name = "Damage taken"; groups = {
         { key = "skills"; name = "by skill"; }, { key = "attackers"; name = "by attacker"; } }; };
     { key = "enemies"; name = "Enemies"; groups = {}; };
@@ -55,6 +55,17 @@ local combatCallback = nil;
 local eventListener = nil;
 local lastCombat = -1000;
 local offset = 0;
+
+local function PetsWithMe()
+    return settingsRoot ~= nil and settingsRoot.pets ~= "apart";
+end
+
+-- An actor of a view; the player has the pets added when the options say so
+function Meter.ActorFor(fight, mode, name)
+    if (fight == nil) then return nil; end
+    if (name == Log.PlayerName() and PetsWithMe()) then return Combats.MergedActor(fight, mode, name, true); end
+    return fight.data[mode][name];
+end
 
 -- Grouping chosen for a view, the first one by default
 local function GroupOf(viewKey, settings)
@@ -96,6 +107,9 @@ local Percent = Meter.Percent;
 
 function Meter.SkillName(name)
     if (name == nil or name == "" or name == Combats.NO_SKILL) then return L("Without skill"); end
+    -- A pet skill added to the player's: "Raven : Peck"
+    local pet, skill = string.match(name, "^(.-)" .. "%" .. Combats.PET_SEPARATOR .. "(.*)$");
+    if (pet ~= nil) then return pet .. " : " .. Meter.SkillName(skill); end
     if (name == Meter.Parser.AUTO_ATTACK) then return L("Auto-attack"); end
     if (name == Meter.Parser.AUTO_ATTACK_RANGED) then return L("Ranged auto-attack"); end
     return name;
@@ -146,6 +160,9 @@ Meter.SUMMARY = {
     { key = "damage"; name = "Damage done"; view = "damage"; value = function(s)
         local total = s.damage and s.damage.total or 0;
         return Short(total) .. "  (" .. PerSecond(total / s.duration) .. "/s)";
+    end; };
+    { key = "petDamage"; name = "Pet damage"; view = "damage"; value = function(s)
+        return Short(s.petDamage) .. "  (" .. PerSecond(s.petDamage / s.duration) .. "/s)";
     end; };
     { key = "crit"; name = "Critical hits"; view = "damage"; value = function(s)
         if (s.damage == nil) then return "-"; end
@@ -249,7 +266,7 @@ local function BarEntries(fight, viewKey, groupKey, now)
     local you = Log.PlayerName();
     local entries;
     local function Mine(field)
-        local actor = fight.data[viewKey][you];
+        local actor = Meter.ActorFor(fight, viewKey, you);
         if (actor == nil) then return {}; end
         local list = Combats.Entries(fight, actor[field], actor.total, now);
         for _, entry in ipairs(list) do
@@ -267,7 +284,17 @@ local function BarEntries(fight, viewKey, groupKey, now)
         return list;
     end
 
-    if (viewKey == "enemies") then
+    if (groupKey == "pets") then
+        -- The pets alone, each skill opening the detail of its pet
+        local pets = Combats.MergedActor(fight, viewKey, you, false);
+        if (pets == nil) then return {}; end
+        entries = Combats.Entries(fight, pets.skills, pets.total, now);
+        for _, entry in ipairs(entries) do
+            local pet, skill = string.match(entry.name, "^(.-)" .. "%" .. Combats.PET_SEPARATOR .. "(.*)$");
+            entry.label = Meter.SkillName(entry.name);
+            entry.open = { viewKey, pet, "skills", skill };
+        end
+    elseif (viewKey == "enemies") then
         entries = People(true);
     elseif (viewKey == "taken" and groupKey == "skills") then
         entries = Combats.Entries(fight, Combats.MergedSkills(fight, "taken"), fight.totals.taken, now);
@@ -573,7 +600,7 @@ local function CreateWindow()
         local group = GroupOf(viewKey);
         w.modeLabel:SetText(Meter.ViewName(viewKey));
         w.fightLabel:SetText(Meter.FightText(fight, which));
-        local summary = Combats.Summary(fight, Log.PlayerName(), now);
+        local summary = Combats.Summary(fight, Log.PlayerName(), now, PetsWithMe());
 
         -- Key figures
         local figures = KeyFigures(fight, viewKey, summary);
@@ -768,6 +795,19 @@ local function SampleFight()
             Combats.RecordInto(fight, "enemies", target, skill[1], you, event);
         end
     end
+    -- A pet, so its lines can be seen without having one
+    local pet = L("Raven");
+    fight.pets[pet] = true;
+    for _, skill in ipairs({ { Meter.Parser.AUTO_ATTACK, 55, 30 }, { L("Peck"), 140, 8 } }) do
+        for index = 1, skill[3] do
+            local target = (index % 2 == 0) and warg or orc;
+            local event = Event(skill[2], 10, "common");
+            Combats.RecordInto(fight, "damage", pet, skill[1], target, event);
+            Combats.RecordInto(fight, "enemies", target, skill[1], pet, event);
+        end
+    end
+    for index = 1, 6 do Combats.RecordInto(fight, "taken", warg, Meter.Parser.AUTO_ATTACK, pet, Event(40, 15, "common")); end
+
     local theirSkills = {
         { orc, Meter.Parser.AUTO_ATTACK, 60, 25 }, { orc, L("Cleave"), 150, 5 },
         { warg, Meter.Parser.AUTO_ATTACK, 40, 15 }, { warg, L("Bite"), 70, 6 },
@@ -826,6 +866,11 @@ local SHOW_ITEMS = {
     { value = "combat"; text = "In combat (and a few seconds after)"; },
 };
 
+local PET_ITEMS = {
+    { value = "with"; text = "Added to my damage"; },
+    { value = "apart"; text = "Apart (view Damage done - pets)"; },
+};
+
 local optionsTab = "window";
 
 local function BuildOptions(page, width, settings)
@@ -864,11 +909,8 @@ local function BuildOptions(page, width, settings)
 
     UI.Label(page, 0, y, half, 18, L("Show the window"));
     UI.Dropdown(page, 0, y + 20, half, Translated(SHOW_ITEMS), settings.show, function(value) settings.show = value; Changed(); end);
-    UI.Button(page, right, y + 20, half, settings.shown and L("Hide the window") or L("Show the window"), function()
-        settings.shown = not settings.shown;
-        Changed();
-        Reopen();
-    end);
+    UI.Label(page, right, y, half, 18, L("Pets"));
+    UI.Dropdown(page, right, y + 20, half, Translated(PET_ITEMS), settings.pets, function(value) settings.pets = value; Changed(); end);
     y = y + 60;
 
     UI.Toggle(page, 0, y, half, L("Key figures at the top"), settings.showStrip, function(value) settings.showStrip = value; Changed(); end);
@@ -891,7 +933,12 @@ local function BuildOptions(page, width, settings)
     UI.Slider(page, right, y, half, L("Fights kept"), 3, 30, 1, settings.history, function(value) settings.history = value; Changed(); end);
     y = y + 52;
 
-    UI.Button(page, 0, y, half, L("Reset the data"), function() Combats.Reset(); Refresh(); end, "danger");
+    UI.Button(page, 0, y, half, settings.shown and L("Hide the window") or L("Show the window"), function()
+        settings.shown = not settings.shown;
+        Changed();
+        Reopen();
+    end);
+    UI.Button(page, right, y, half, L("Reset the data"), function() Combats.Reset(); Refresh(); end, "danger");
     y = y + 34;
     UI.Label(page, 0, y, width, 54,
         L("Click the title of the window to change the view, the fight name to pick a fight, a bar for its full detail. The game only writes in the combat log what concerns you: the meter cannot show the damage of the other players."),
@@ -914,6 +961,7 @@ Grommey.Modules.Register({
         show = "always";
         mode = "damage";
         groups = {};
+        pets = "with";
         fight = "current";
         width = 300;
         rows = 8;

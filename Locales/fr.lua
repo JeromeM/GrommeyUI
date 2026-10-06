@@ -528,4 +528,11 @@ Grommey.AddTranslations("fr", {
     ["Healing Words"] = "Paroles de guérison";
     ["Power Surge"] = "Afflux de puissance";
     ["Fixes an \"invalid key to 'next'\" error that could show up after using an item of the bag."] = "Corrige une erreur « invalid key to 'next' » qui pouvait apparaître après avoir utilisé un objet du sac.";
+    ["Added to my damage"] = "Ajoutés à mes dégâts";
+    ["Apart (view Damage done - pets)"] = "À part (vue Dégâts infligés - familiers)";
+    ["Peck"] = "Coup de bec";
+    ["Pet damage"] = "Dégâts du familier";
+    ["Pets"] = "Familiers";
+    ["Raven"] = "Corbeau";
+    ["pets"] = "familiers";
 });
