@@ -57,7 +57,7 @@ local function Now()
 end
 
 local function Fight()
-    return Combats.Get(Meter.SelectedFight());
+    return Meter.DisplayedFight();
 end
 
 local function Actor(fight)

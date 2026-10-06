@@ -3,7 +3,7 @@
     <Information>
         <Name>~GrommeyUIReloader</Name>
         <Author>Grommey</Author>
-        <Version>1.0.1</Version>
+        <Version>1.1.0</Version>
         <Description>Recharge GrommeyUI. Ne pas charger à la main.</Description>
     </Information>
     <Package>GrommeyUI.Reloader.Main</Package>

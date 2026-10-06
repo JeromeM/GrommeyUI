@@ -8,6 +8,7 @@ A clean, modern all-in-one interface for The Lord of the Rings Online: flat, opa
 [*][B]Info bar[/B]: money, currencies, bag slots, durability, FPS, time, session time and money, character.
 [*][B]Auras[/B]: your buffs and debuffs in two areas next to the minimap, with detailed tooltips, important and hidden effects.
 [*][B]Action bars[/B]: extra bars for skills, items and commands, and a consumables bar that fills itself from your backpack.
+[*][B]Combat meter[/B]: replaces Combat Analysis for your character. Damage done and taken, enemies, healing and power, fight by fight: key figures, bars by skill or target, a summary and a detail window with every counter. Fights are kept between reloads.
 [*][B]Themes[/B]: six accent colours, three backgrounds, three fonts and a text size.
 [*][B]Profiles[/B]: shared between characters, exported and imported as a text code.
 [*][B]Move mode[/B]: drag every frame where you want, with a grid and snapping.
@@ -24,11 +25,12 @@ Unzip the file into [I]Documents\The Lord of the Rings Online\Plugins\[/I]: it h
 [*][I]/gui move[/I]: move the frames
 [*][I]/gui reload[/I]: reload the interface
 [*][I]/gui reset[/I]: put every frame back in place
+[*][I]/gui meter[/I]: show or hide the combat meter
 [/LIST]
 
 Source code and bug reports: [URL="https://github.com/JeromeM/GrommeyUI"]github.com/JeromeM/GrommeyUI[/URL]
 
 [SIZE="3"][B]Français[/B][/SIZE]
-Une interface moderne et épurée pour Le Seigneur des Anneaux Online : fenêtres plates et opaques, une couleur de thème, et tout se règle et se place où on veut. Sacs regroupés et triés par catégorie (avec tes propres catégories), cadres joueur / cible / cible de la cible / groupe, barre d'infos, auras près de la minimap, barres d'action avec une barre de consommables automatique, thèmes, profils partageables par code, mode déplacement, assistant de configuration. En anglais, français et allemand.
+Une interface moderne et épurée pour Le Seigneur des Anneaux Online : fenêtres plates et opaques, une couleur de thème, et tout se règle et se place où on veut. Sacs regroupés et triés par catégorie (avec tes propres catégories), cadres joueur / cible / cible de la cible / groupe, barre d'infos, auras près de la minimap, barres d'action avec une barre de consommables automatique, compteur de combat pour remplacer Combat Analysis, thèmes, profils partageables par code, mode déplacement, assistant de configuration. En anglais, français et allemand.
 
 [B]Installation[/B] : décompresser le fichier dans [I]Documents\The Lord of the Rings Online\Plugins\[/I] (il contient le dossier [I]GrommeyUI[/I], rien à renommer), puis charger [B]GrommeyUI[/B] dans le gestionnaire de plugins du jeu ou taper [I]/plugins load GrommeyUI[/I].

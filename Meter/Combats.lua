@@ -201,6 +201,10 @@ local function Record(fight, mode, actorName, skillName, targetName, event)
     fight.totals[mode] = fight.totals[mode] + amount;
 end
 
+-- For the preview of the meter, which builds a fight of its own
+Combats.NewFight = NewFight;
+Combats.RecordInto = Record;
+
 local function RecordBoth(mode, actorName, skillName, targetName, event)
     Record(current, mode, actorName, skillName, targetName, event);
     Record(overall, mode, actorName, skillName, targetName, event);

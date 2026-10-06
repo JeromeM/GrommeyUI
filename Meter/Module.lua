@@ -103,6 +103,7 @@ end
 
 function Meter.FightText(fight, which)
     if (fight == nil) then return L("No fight yet"); end
+    if (fight.preview) then return L("Preview") .. " · " .. Clock(Combats.Duration(fight)); end
     local now = Turbine.Engine.GetGameTime();
     if (which == "overall") then return L("Overall") .. " · " .. Clock(Combats.Duration(fight, now)); end
     local name = Combats.Name(fight);
@@ -567,13 +568,7 @@ local function CreateWindow()
     function w.Refresh()
         local now = Now();
         local which = settingsRoot.fight;
-        local fight = Combats.Get(which);
-        if (fight == nil and type(which) == "number") then
-            -- That fight is no longer kept
-            settingsRoot.fight = "current";
-            which = "current";
-            fight = Combats.Get(which);
-        end
+        local fight = Meter.DisplayedFight();
         local viewKey = settingsRoot.mode;
         local group = GroupOf(viewKey);
         w.modeLabel:SetText(Meter.ViewName(viewKey));
@@ -726,6 +721,92 @@ local function SaveFights()
     Grommey.Storage.Save(Turbine.DataScope.Character, FIGHTS_FILE, Combats.Export());
 end
 
+------------------------------------------------------------------------------------------------------------------------------------------
+-- Preview: a made up fight to set the windows up without fighting (button in the options, and in move mode)
+
+local preview = false;
+local previewBeforeMove = false;
+local previewFight = nil;
+
+local function SampleFight()
+    local you = Log.PlayerName() or player:GetName();
+    local fight = Combats.NewFight(0);
+    fight.last = 84;
+    fight.preview = true;
+    -- Always the same numbers: a small random generator with a fixed start
+    local seed = 7;
+    local function Random(count)
+        -- Park-Miller: stays inside the exact range of Lua numbers
+        seed = (seed * 16807) % 2147483647;
+        return seed % count;
+    end
+    local function Event(base, avoidChance, damageType)
+        local roll = Random(100);
+        if (roll < avoidChance) then
+            local avoids = { "parry", "evade", "block", "miss" };
+            return { amount = 0; avoid = avoids[Random(4) + 1]; };
+        end
+        local event = { amount = 0; damageType = damageType; };
+        local factor = 0.8 + Random(40) / 100;
+        if (roll >= 97) then event.crit = "devastating"; factor = factor * 2;
+        elseif (roll >= 82) then event.crit = "critical"; factor = factor * 1.5; end
+        if (roll >= avoidChance and roll < avoidChance + 5) then event.partial = "parry"; factor = factor * 0.5; end
+        event.amount = math.floor(base * factor);
+        return event;
+    end
+
+    local orc, warg = L("Orc warrior"), L("Warg");
+    local mySkills = {
+        { Meter.Parser.AUTO_ATTACK, 110, 40, "common" }, { L("Heavy Strike"), 460, 9, "common" },
+        { L("Quick Strike"), 250, 14, "common" }, { L("Bleeding Wound"), 85, 20, "common" }, { L("Fire Blast"), 380, 6, "fire" },
+    };
+    for _, skill in ipairs(mySkills) do
+        for index = 1, skill[3] do
+            local target = (index % 3 == 0) and warg or orc;
+            local event = Event(skill[2], 7, skill[4]);
+            Combats.RecordInto(fight, "damage", you, skill[1], target, event);
+            Combats.RecordInto(fight, "enemies", target, skill[1], you, event);
+        end
+    end
+    local theirSkills = {
+        { orc, Meter.Parser.AUTO_ATTACK, 60, 25 }, { orc, L("Cleave"), 150, 5 },
+        { warg, Meter.Parser.AUTO_ATTACK, 40, 15 }, { warg, L("Bite"), 70, 6 },
+    };
+    for _, skill in ipairs(theirSkills) do
+        for index = 1, skill[4] do
+            Combats.RecordInto(fight, "taken", skill[1], skill[2], you, Event(skill[3], 15, "common"));
+        end
+    end
+    for index = 1, 3 do Combats.RecordInto(fight, "heal", you, L("Second Wind"), you, Event(400, 0)); end
+    for index = 1, 4 do Combats.RecordInto(fight, "heal", "Elendil", L("Healing Words"), you, Event(300, 0)); end
+    for index = 1, 10 do Combats.RecordInto(fight, "power", you, L("Power Surge"), you, Event(12, 0)); end
+    fight.counters.kills = 2;
+    fight.counters.interruptsDone = 1;
+    fight.counters.bubble = 350;
+    fight.counters.bubbleHits = 2;
+    return fight;
+end
+
+local function SetPreview(enabled)
+    preview = enabled;
+    previewFight = enabled and SampleFight() or nil;
+    Refresh();
+    if (Meter.Detail) then Meter.Detail.Refresh(); end
+end
+
+-- The fight both windows show: the preview, or the one chosen in the fight menu
+function Meter.DisplayedFight()
+    if (preview and previewFight) then return previewFight; end
+    if (settingsRoot == nil) then return Combats.Get("current"); end
+    local fight = Combats.Get(settingsRoot.fight);
+    if (fight == nil and type(settingsRoot.fight) == "number") then
+        -- That fight is no longer kept
+        settingsRoot.fight = "current";
+        fight = Combats.Get("current");
+    end
+    return fight;
+end
+
 -- Fight shown in the main window, for the detail window
 function Meter.SelectedFight()
     return settingsRoot and settingsRoot.fight or "current";
@@ -754,6 +835,11 @@ local function BuildOptions(page, width, settings)
     local function Changed() Grommey.Profiles.RequestSave(); Combats.SetHistorySize(settings.history); Build(); end
 
     UI.Header(page, 0, 16, width, L("Combat meter"));
+    -- A made up fight to set everything up without fighting
+    UI.Button(page, width - 200, 12, 200, preview and L("Preview: on") or L("Preview: off"), function()
+        SetPreview(not preview);
+        Reopen();
+    end, preview and "accent" or nil);
     local x = 0;
     for _, tab in ipairs({ { key = "window"; text = L("Window"); }, { key = "summary"; text = L("My summary"); } }) do
         UI.Button(page, x, 52, 150, tab.text, function() optionsTab = tab.key; Reopen(); end, (optionsTab == tab.key) and "accent" or nil);
@@ -859,7 +945,17 @@ Grommey.Modules.Register({
         Build();
         if (Meter.Detail) then Meter.Detail.Create(); end
 
-        Grommey.On("MoveModeChanged", function() if (window) then window.UpdateVisibility(); end end);
+        Grommey.On("MoveModeChanged", function(active)
+            if (settingsRoot == nil) then return; end
+            -- The made up fight in move mode, so the window has its real size and content
+            if (active) then
+                previewBeforeMove = preview;
+                SetPreview(true);
+            else
+                SetPreview(previewBeforeMove == true);
+            end
+            if (window) then window.UpdateVisibility(); end
+        end);
         Grommey.On("HudToggled", function() if (window) then window.UpdateVisibility(); end end);
         Grommey.On("ProfileChanged", function() if (settingsRoot) then Build(); end end);
     end;

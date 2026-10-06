@@ -3,6 +3,13 @@
 -- translations in Locales/*.lua.
 
 Grommey.Changelog = {
+    { version = "1.1.0"; items = {
+        L("New module: Combat meter, to replace Combat Analysis. Damage done and taken, enemies, healing and power of your character, fight by fight.");
+        L("Key figures at the top (DPS, critical hits, avoided attacks...), bars by skill, target, attacker or healer, and a summary whose lines you choose.");
+        L("Click a bar for the detail window: hits, critical and devastating hits, average, biggest, every kind of avoidance and damage type.");
+        L("Fights are kept between reloads. A preview shows a made up fight to set the window up without fighting.");
+        L("The meter reads the combat log of the English, French and German clients.");
+    }; };
     { version = "1.0.1"; items = {
         L("GrommeyUI can now be recognised and updated by LOTRO Plugin Compendium.");
     }; };
