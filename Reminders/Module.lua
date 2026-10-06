@@ -296,6 +296,12 @@ local function Destroy()
 end
 
 local function Build()
+    -- A new size keeps in place the side the area grows from
+    local old = nil;
+    if (area) then
+        local width, height = area:GetSize();
+        old = { left = area:GetLeft(); top = area:GetTop(); width = width; height = height; };
+    end
     Destroy();
     area = Turbine.UI.Window();
     area:SetMouseVisible(false);
@@ -313,6 +319,7 @@ local function Build()
     Grommey.Movers.Register("reminders", area, L("Buff reminders"),
         function() return math.floor((Turbine.UI.Display.GetWidth() - area:GetWidth()) / 2); end,
         function() return math.floor(Turbine.UI.Display.GetHeight() * 0.25); end);
+    Grommey.Movers.KeepEdges("reminders", area, old, settingsRoot.growth == "left", settingsRoot.growth == "up");
     Refresh();
 end
 
@@ -505,6 +512,7 @@ end
 
 Grommey.Modules.Register({
     id = "Reminders";
+    category = "effects";
     name = "Buff reminders";
     description = "Warns you when a buff you chose is missing or about to end.";
     enabledByDefault = true;

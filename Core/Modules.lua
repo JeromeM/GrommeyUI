@@ -3,6 +3,7 @@
 --   Grommey.Modules.Register({
 --       id = "UnitFrames";                 -- settings live in Grommey.Profile.modules.UnitFrames
 --       name = "Unit frames";              -- shown in the options, translated with L()
+--       category = "interface";            -- group of the options menu: interface, effects or combat
 --       description = "Player, target...";
 --       enabledByDefault = true;
 --       defaults = { ... };                -- default settings of the module

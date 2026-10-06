@@ -13,6 +13,17 @@ local pageHolder = nil;
 local currentPage = nil;
 local currentKey = nil;
 local menuItems = {};
+local menuRows = {};       -- category titles and page items, in menu order
+
+-- Groups of the menu, each can be folded. Modules say where they go with category = "...".
+local CATEGORIES = {
+    { key = "core"; title = "GrommeyUI"; };
+    { key = "interface"; title = "Interface"; };
+    { key = "effects"; title = "Buffs and debuffs"; };
+    { key = "combat"; title = "Combat"; };
+};
+local ROW_HEIGHT = 30;
+local TITLE_HEIGHT = 30;
 
 local UI = Grommey.UI;
 
@@ -276,30 +287,42 @@ local function BuildModules(page, width)
 end
 
 local Pages = {
-    { key = "General";  build = BuildGeneral; };
-    { key = "Theme";    build = BuildTheme; };
-    { key = "Profiles"; build = BuildProfiles; };
-    { key = "Layout";   build = BuildLayout; };
-    { key = "Modules";  build = BuildModules; };
+    { key = "General";  category = "core"; build = BuildGeneral; };
+    { key = "Theme";    category = "core"; build = BuildTheme; };
+    { key = "Profiles"; category = "core"; build = BuildProfiles; };
+    { key = "Layout";   category = "core"; build = BuildLayout; };
+    { key = "Modules";  category = "core"; build = BuildModules; };
 };
+
+local function PageCategory(key)
+    for _, page in ipairs(Pages) do
+        if (page.key == key) then return page.category; end
+    end
+    return nil;
+end
+
+-- Folded categories, kept with the profile
+local function Folded()
+    Grommey.Profile.optionsFolded = Grommey.Profile.optionsFolded or {};
+    return Grommey.Profile.optionsFolded;
+end
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 -- Window
 
-local function CreateMenuItem(parent, index, page)
+local function CreateMenuItem(parent, page)
     local Theme = Grommey.Theme;
     local item = Turbine.UI.Control();
     item:SetParent(parent);
-    item:SetPosition(0, 12 + (index - 1) * 38);
-    item:SetSize(MENU_WIDTH, 36);
+    item:SetSize(MENU_WIDTH, ROW_HEIGHT);
 
     local marker = Turbine.UI.Control();
     marker:SetParent(item);
-    marker:SetPosition(0, 6);
-    marker:SetSize(3, 24);
+    marker:SetPosition(0, 5);
+    marker:SetSize(3, ROW_HEIGHT - 10);
     marker:SetMouseVisible(false);
 
-    local label = UI.Label(item, 20, 0, MENU_WIDTH - 24, 36, L(page.title or page.key), { size = 15; });
+    local label = UI.Label(item, 30, 0, MENU_WIDTH - 34, ROW_HEIGHT, L(page.title or page.key), { size = 14; });
 
     local hovered = false;
     item.Paint = function()
@@ -314,6 +337,60 @@ local function CreateMenuItem(parent, index, page)
     item.MouseLeave = function() hovered = false; item.Paint(); end
     item.MouseClick = function() Grommey.Options.ShowPage(page.key); end
     return item;
+end
+
+-- Places the rows: a folded category hides its pages
+local function LayoutMenu()
+    local y = 10;
+    for _, row in ipairs(menuRows) do
+        local shown = row.isTitle or not Folded()[row.category];
+        row.control:SetVisible(shown);
+        if (shown) then
+            if (row.isTitle and y > 10) then y = y + 6; end
+            row.control:SetPosition(0, y);
+            y = y + row.control:GetHeight();
+        end
+        row.control.Paint();
+    end
+end
+
+-- Category title: click to fold or unfold, in the theme colour when it hides the page shown
+local function CreateCategoryTitle(parent, category)
+    local Theme = Grommey.Theme;
+    local title = Turbine.UI.Control();
+    title:SetParent(parent);
+    title:SetSize(MENU_WIDTH, TITLE_HEIGHT);
+
+    local sign = UI.Label(title, 12, 0, 14, TITLE_HEIGHT, "", { size = 14; bold = true; });
+    local label = UI.Label(title, 28, 0, MENU_WIDTH - 32, TITLE_HEIGHT, L(category.title), { size = 13; bold = true; });
+    local line = Turbine.UI.Control();
+    line:SetParent(title);
+    line:SetPosition(12, TITLE_HEIGHT - 3);
+    line:SetSize(MENU_WIDTH - 24, 1);
+    line:SetMouseVisible(false);
+
+    local hovered = false;
+    title.Paint = function()
+        local folded = Folded()[category.key] == true;
+        local holdsCurrent = folded and PageCategory(currentKey) == category.key;
+        sign:SetText(folded and "+" or "-");
+        local role = (holdsCurrent or hovered) and "accent" or "text";
+        sign:SetForeColor(Theme.Color("accent"));
+        label:SetForeColor(Theme.Color(role));
+        line:SetBackColor(Theme.Color("border"));
+        title:SetBackColor(Theme.Color("panel"));
+    end
+    Theme.Track(title.Paint);
+
+    title.MouseEnter = function() hovered = true; title.Paint(); end
+    title.MouseLeave = function() hovered = false; title.Paint(); end
+    title.MouseClick = function()
+        local folded = Folded();
+        folded[category.key] = (not folded[category.key]) or nil;
+        Grommey.Profiles.RequestSave();
+        LayoutMenu();
+    end
+    return title;
 end
 
 function Grommey.Options.Create()
@@ -340,14 +417,26 @@ function Grommey.Options.Create()
             table.insert(Pages, {
                 key = "module:" .. module.id;
                 title = module.name;
+                category = module.category or "interface";
                 build = function(page, width) module.BuildOptions(page, width, Grommey.Modules.Settings(module.id)); end;
             });
         end
     end
 
-    for index, page in ipairs(Pages) do
-        menuItems[page.key] = CreateMenuItem(menu, index, page);
+    for _, category in ipairs(CATEGORIES) do
+        local title = nil;
+        for _, page in ipairs(Pages) do
+            if (page.category == category.key) then
+                if (title == nil) then
+                    title = CreateCategoryTitle(menu, category);
+                    table.insert(menuRows, { control = title; isTitle = true; category = category.key; });
+                end
+                menuItems[page.key] = CreateMenuItem(menu, page);
+                table.insert(menuRows, { control = menuItems[page.key]; category = category.key; });
+            end
+        end
     end
+    LayoutMenu();
 
     UI.Label(menu, 20, contentHeight - 30, MENU_WIDTH - 24, 20, "v" .. plugin:GetVersion(), { size = 12; role = "dim"; });
 
@@ -408,7 +497,7 @@ function Grommey.Options.ShowPage(key)
     for _, page in ipairs(Pages) do
         if (page.key == key) then page.build(currentPage, width); end
     end
-    for _, item in pairs(menuItems) do item.Paint(); end
+    LayoutMenu();
 end
 
 -- Draws a page again if it is the one shown, after a change made elsewhere

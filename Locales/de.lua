@@ -604,4 +604,26 @@ Grommey.AddTranslations("de", {
     ["%s ends in %s"] = "%s endet in %s";
     ["Example buff"] = "Beispiel-Buff";
     ["Food"] = "Essen";
+    -- Timer bars
+    ["Your buffs and debuffs as bars that empty as they run out."] = "Deine Buffs und Debuffs als Leisten, die sich mit der Zeit leeren.";
+    ["Buff bars"] = "Buff-Leisten";
+    ["Debuff bars"] = "Debuff-Leisten";
+    ["Show these bars"] = "Diese Leisten anzeigen";
+    ["Effects shown"] = "Angezeigte Effekte";
+    ["All, except the hidden ones"] = "Alle, außer den ausgeblendeten";
+    ["Only the chosen ones"] = "Nur die gewählten";
+    ["Show"] = "Anzeigen";
+    ["Shown effects (only these)"] = "Angezeigte Effekte (nur diese)";
+    ["The bar empties as the effect runs out: the soonest to end comes first, the important ones before all. Place the bars with the move mode. The filters let you keep only the effects you want."] = "Die Leiste leert sich, während der Effekt abläuft: der am frühesten endende steht vorne, die wichtigen vor allen. Platziere die Leisten im Verschiebemodus. Mit den Filtern behältst du nur die gewünschten Effekte.";
+    ["Timer bars"] = "Zeitleisten";
+    ["Bar width"] = "Leistenbreite";
+    ["Bar colour by type"] = "Leistenfarbe nach Typ";
+    ["Icon on the left of the bar"] = "Symbol links von der Leiste";
+    ["Maximum bars"] = "Maximale Anzahl Leisten";
+    ["New bars"] = "Neue Leisten";
+    -- Options menu
+    ["GrommeyUI"] = "GrommeyUI";
+    ["Interface"] = "Oberfläche";
+    ["Buffs and debuffs"] = "Buffs und Debuffs";
+    ["Combat"] = "Kampf";
 });

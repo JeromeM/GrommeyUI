@@ -952,6 +952,7 @@ for _, line in ipairs(Meter.SUMMARY) do summaryDefaults[line.key] = true; end
 
 Grommey.Modules.Register({
     id = "Meter";
+    category = "combat";
     name = "Combat meter";
     description = "Damage, healing and damage taken by fight, in the style of Details.";
     enabledByDefault = true;

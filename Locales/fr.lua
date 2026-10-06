@@ -604,4 +604,26 @@ Grommey.AddTranslations("fr", {
     ["%s ends in %s"] = "%s finit dans %s";
     ["Example buff"] = "Buff d'exemple";
     ["Food"] = "Nourriture";
+    -- Timer bars
+    ["Your buffs and debuffs as bars that empty as they run out."] = "Tes buffs et débuffs en barres qui se vident avec le temps.";
+    ["Buff bars"] = "Barres des buffs";
+    ["Debuff bars"] = "Barres des débuffs";
+    ["Show these bars"] = "Afficher ces barres";
+    ["Effects shown"] = "Effets affichés";
+    ["All, except the hidden ones"] = "Tous, sauf ceux masqués";
+    ["Only the chosen ones"] = "Seulement ceux choisis";
+    ["Show"] = "Afficher";
+    ["Shown effects (only these)"] = "Effets affichés (seulement eux)";
+    ["The bar empties as the effect runs out: the soonest to end comes first, the important ones before all. Place the bars with the move mode. The filters let you keep only the effects you want."] = "La barre se vide à mesure que l'effet s'écoule : celui qui finit le plus tôt est en premier, les importants avant tout. Place les barres avec le mode déplacement. Les filtres permettent de ne garder que les effets voulus.";
+    ["Timer bars"] = "Barres de temps";
+    ["Bar width"] = "Largeur des barres";
+    ["Bar colour by type"] = "Couleur de la barre selon le type";
+    ["Icon on the left of the bar"] = "Icône à gauche de la barre";
+    ["Maximum bars"] = "Nombre maximum de barres";
+    ["New bars"] = "Nouvelles barres";
+    -- Options menu
+    ["GrommeyUI"] = "GrommeyUI";
+    ["Interface"] = "Interface";
+    ["Buffs and debuffs"] = "Buffs et débuffs";
+    ["Combat"] = "Combat";
 });

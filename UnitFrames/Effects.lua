@@ -4,6 +4,7 @@
 --           filter (nil, "buffs" or "debuffs"), timeBelow (time under the icon instead of on it),
 --           colorByType (debuff border coloured by disease, fear, poison or wound),
 --           hidden / important (effect name = true: never shown / shown first with a theme border),
+--           only (effect name = true: when set, only these and the important ones are shown),
 --           hidePermanent (no effects without a duration or lasting an hour or more)
 
 local UF = Grommey.UnitFrames;
@@ -56,12 +57,11 @@ local TYPE_COLORS = {
     Wound = { r = 232; g = 84; b = 84; };
 };
 
-local function BorderColor(entry, settings)
-    if (entry.important) then return Theme.Color("accent"); end
-    if (not entry.debuff) then return Theme.Color("border"); end
+-- Colour of a debuff: by type when asked, red otherwise
+function UF.DebuffColor(effect, colorByType)
     local categories = Turbine.Gameplay.EffectCategory;
-    local category = Read(entry.effect, "GetCategory");
-    if (settings.colorByType and categories ~= nil and category ~= nil) then
+    local category = Read(effect, "GetCategory");
+    if (colorByType and categories ~= nil and category ~= nil) then
         for name, color in pairs(TYPE_COLORS) do
             if (categories[name] ~= nil and categories[name] == category) then
                 return Turbine.UI.Color(color.r / 255, color.g / 255, color.b / 255);
@@ -69,6 +69,12 @@ local function BorderColor(entry, settings)
         end
     end
     return Theme.Color("danger");
+end
+
+local function BorderColor(entry, settings)
+    if (entry.important) then return Theme.Color("accent"); end
+    if (not entry.debuff) then return Theme.Color("border"); end
+    return UF.DebuffColor(entry.effect, settings.colorByType);
 end
 
 -- Shared tooltip: name, kind and remaining time, then the description of the effect
@@ -165,6 +171,10 @@ end
 local function HideTooltip()
     if (tooltip) then tooltip:SetVisible(false); end
 end
+
+-- Also used by the timer bars of the auras: owner.effect and owner.debuff
+UF.ShowEffectTooltip = ShowTooltip;
+UF.HideEffectTooltip = HideTooltip;
 
 UF.EffectsBar = class(Turbine.UI.Control);
 
@@ -265,17 +275,13 @@ local function CreateIcon(bar)
     return icon;
 end
 
--- Reads the effect list and places the icons
-function UF.EffectsBar:Rebuild()
-    local settings = self.settings;
-    local areaWidth, areaHeight = self:GetAreaSize();
-    self:SetSize(areaWidth, areaHeight);
-
+-- Effects to show, filtered and sorted: { effect, debuff, important, order }
+function UF.CollectEffects(effects, settings)
     local entries = {};
-    if (settings.show and self.effects ~= nil) then
-        local count = Read(self.effects, "GetCount") or 0;
+    if (settings.show and effects ~= nil) then
+        local count = Read(effects, "GetCount") or 0;
         for index = 1, count do
-            local ok, effect = pcall(self.effects.Get, self.effects, index);
+            local ok, effect = pcall(effects.Get, effects, index);
             if (ok and effect ~= nil) then
                 local debuff = Read(effect, "IsDebuff") == true;
                 local name = Read(effect, "GetName") or "";
@@ -283,6 +289,7 @@ function UF.EffectsBar:Rebuild()
                 local permanent = (duration <= 0 or duration >= PERMANENT_DURATION);
                 local wanted = (settings.filter == nil or (settings.filter == "debuffs") == debuff)
                     and not (settings.hidden and settings.hidden[name])
+                    and not (settings.only and not settings.only[name] and not (settings.important and settings.important[name]))
                     and not (settings.hidePermanent and permanent);
                 if (wanted) then
                     local important = (settings.important ~= nil and settings.important[name] == true);
@@ -297,6 +304,15 @@ function UF.EffectsBar:Rebuild()
             return a.order < b.order;
         end);
     end
+    return entries;
+end
+
+-- Reads the effect list and places the icons
+function UF.EffectsBar:Rebuild()
+    local settings = self.settings;
+    local areaWidth, areaHeight = self:GetAreaSize();
+    self:SetSize(areaWidth, areaHeight);
+    local entries = UF.CollectEffects(self.effects, settings);
 
     local size = ICON_BOX;
     local spacing = settings.spacing or DEFAULT_SPACING;

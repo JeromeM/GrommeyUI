@@ -66,6 +66,18 @@ function Grommey.Movers.SavePosition(id, x, y)
     Grommey.Profiles.RequestSave();
 end
 
+-- After a frame changed size, keeps the side it grows from in place (old = { left, top, width, height }):
+-- the right edge when it grows toward the left, the bottom edge when it grows upward
+function Grommey.Movers.KeepEdges(id, frame, old, keepRight, keepBottom)
+    if (old == nil) then return; end
+    local width, height = frame:GetSize();
+    if (width == old.width and height == old.height) then return; end
+    local left = keepRight and (old.left + old.width - width) or old.left;
+    local top = keepBottom and (old.top + old.height - height) or old.top;
+    frame:SetPosition(left, top);
+    Grommey.Movers.SavePosition(id, left, top);
+end
+
 function Grommey.Movers.Reset(id)
     Grommey.Profile.positions[id] = nil;
     ApplyPosition(id);
