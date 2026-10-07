@@ -60,14 +60,18 @@ local function BuildDisplayOptions(page, width, settings, Changed)
     if (#names == 0) then
         UI.Label(page, 0, y + 36, width, 20, L("Your wallet is empty for now."), { role = "dim"; });
     end
+    -- A long wallet scrolls
+    local area = UI.ScrollArea(page, 0, y + 36, width, page:GetHeight() - y - 36);
+    local columnWidth = math.floor((area.contentWidth - 30) / 2);
     for position, name in ipairs(names) do
         local column = (position - 1) % 2;
         local row = math.floor((position - 1) / 2);
-        UI.Toggle(page, column * (half + 30), y + 36 + row * 28, half, name, settings.currencies[name] == true, function(value)
+        UI.Toggle(area.content, column * (columnWidth + 30), row * 28, columnWidth, name, settings.currencies[name] == true, function(value)
             settings.currencies[name] = value or nil;
             Changed();
         end);
     end
+    area.Fit(math.ceil(#names / 2) * 28);
 end
 
 -- Categories made by the player, and the items put in them

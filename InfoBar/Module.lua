@@ -452,14 +452,18 @@ local function BuildOptions(page, width, settings)
         local names = {};
         if (wallet) then for index = 1, wallet:GetSize() do table.insert(names, wallet:GetItem(index):GetName()); end end
         table.sort(names);
+        -- A long wallet scrolls
+        local area = UI.ScrollArea(page, 0, y, width, page:GetHeight() - y);
+        local columnWidth = math.floor((area.contentWidth - 30) / 2);
         for index, name in ipairs(names) do
             local column = (index - 1) % 2;
             local row = math.floor((index - 1) / 2);
-            UI.Toggle(page, column * right, y + row * 26, half, name, settings.currencies[name] == true, function(value)
+            UI.Toggle(area.content, column * (columnWidth + 30), row * 26, columnWidth, name, settings.currencies[name] == true, function(value)
                 settings.currencies[name] = value or nil;
                 Changed();
             end);
         end
+        area.Fit(math.ceil(#names / 2) * 26);
     end
 end
 

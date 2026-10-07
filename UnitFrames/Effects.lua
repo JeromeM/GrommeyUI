@@ -111,7 +111,8 @@ local function ShowTooltip(icon)
         tooltip.frame:SetMouseVisible(false);
         tooltip.title = Grommey.UI.Label(tooltip, 10, 6, 10, 20, "", { bold = true; });
         tooltip.info = Grommey.UI.Label(tooltip, 10, 26, 10, 18, "", { size = 12; role = "dim"; });
-        tooltip.description = Grommey.UI.Label(tooltip, 10, 48, 10, 10, "", { size = 12; multiline = true; align = Turbine.UI.ContentAlignment.TopLeft; });
+        -- Game descriptions can hold colour tags (<rgb=#FFFF00>...</rgb>)
+        tooltip.description = Grommey.UI.Label(tooltip, 10, 48, 10, 10, "", { size = 12; multiline = true; markup = true; align = Turbine.UI.ContentAlignment.TopLeft; });
     end
 
     local name = Read(effect, "GetName") or "";
@@ -137,7 +138,9 @@ local function ShowTooltip(icon)
         width = math.max(width, TOOLTIP_WIDTH);
         local perLine = math.floor((width - 20) / 6.6);
         local lines = 0;
-        for paragraph in string.gmatch(description .. "\n", "([^\n]*)\n") do
+        -- The tags take no room on screen
+        local visible = string.gsub(description, "<[^>]*>", "");
+        for paragraph in string.gmatch(visible .. "\n", "([^\n]*)\n") do
             lines = lines + math.max(1, math.ceil(string.len(paragraph) / perLine));
         end
         height = 56 + lines * 15;

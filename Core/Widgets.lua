@@ -192,6 +192,39 @@ function Grommey.UI.Note(parent, x, y, width, text)
     return box;
 end
 
+-- Area that scrolls when its content is taller than it: put the children in area.content (width
+-- area.contentWidth, room left for the scroll bar), then call area.Fit(height of the content)
+function Grommey.UI.ScrollArea(parent, x, y, width, height)
+    local area = Turbine.UI.Control();
+    area:SetParent(parent);
+    area:SetPosition(x, y);
+    area:SetSize(width, height);
+    area.contentWidth = width - 16;
+
+    local list = Turbine.UI.ListBox();
+    list:SetParent(area);
+    list:SetSize(area.contentWidth, height);
+    local scrollBar = Turbine.UI.Lotro.ScrollBar();
+    scrollBar:SetOrientation(Turbine.UI.Orientation.Vertical);
+    scrollBar:SetParent(area);
+    scrollBar:SetPosition(width - 10, 0);
+    scrollBar:SetSize(10, height);
+    scrollBar:SetVisible(false);
+    list:SetVerticalScrollBar(scrollBar);
+
+    area.content = Turbine.UI.Control();
+    area.content:SetSize(area.contentWidth, height);
+    area.Fit = function(contentHeight)
+        area.content:SetSize(area.contentWidth, math.max(1, contentHeight));
+        -- The list takes the new size into account when the content is put back in
+        list:ClearItems();
+        list:AddItem(area.content);
+        scrollBar:SetVisible(contentHeight > height);
+    end
+    area.Fit(height);
+    return area;
+end
+
 function Grommey.UI.Separator(parent, x, y, width)
     local line = Turbine.UI.Control();
     line:SetParent(parent);
