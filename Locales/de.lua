@@ -638,4 +638,7 @@ Grommey.AddTranslations("de", {
     ["Target, target of target and party frames: their buffs and debuffs could stop updating when they changed many times a second (a raid boss). They are now read at most 4 times a second."] = "Rahmen von Ziel, Ziel des Ziels und Gruppe: ihre Buffs und Debuffs konnten sich nicht mehr aktualisieren, wenn sie sich mehrmals pro Sekunde änderten (ein Schlachtzugsboss). Sie werden jetzt höchstens 4-mal pro Sekunde gelesen.";
     -- What's new 1.2.2
     ["Bags: a warning in the chat for any other loaded plugin with \"bag\" in its name, not only Prime Bags and HugeBag. Two bag plugins at once fight over the bag keys."] = "Taschen: eine Warnung im Chat für jedes andere geladene Plugin mit „bag“ im Namen, nicht nur Prime Bags und HugeBag. Zwei Taschen-Plugins gleichzeitig streiten sich um die Taschentasten.";
+    -- What's new 1.2.3
+    ["Effect tooltips: the colour tags of the game descriptions (<rgb=...>) are shown as colours instead of plain text."] = "Effekt-Tooltips: die Farbmarkierungen der Spielbeschreibungen (<rgb=...>) werden als Farben statt als Text angezeigt.";
+    ["Options: the currency lists of the bags and of the info bar scroll when you have many currencies."] = "Optionen: die Währungslisten der Taschen und der Infoleiste lassen sich scrollen, wenn du viele Währungen hast.";
 });

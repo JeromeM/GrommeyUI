@@ -38,6 +38,11 @@ Une interface moderne et épurée pour Le Seigneur des Anneaux Online : fenêtre
 [B]Installation[/B] : décompresser le fichier dans [I]Documents\The Lord of the Rings Online\Plugins\[/I] (il contient le dossier [I]GrommeyUI[/I], rien à renommer), puis charger [B]GrommeyUI[/B] dans le gestionnaire de plugins du jeu ou taper [I]/plugins load GrommeyUI[/I].
 
 [SIZE="3"][B]Changelog[/B][/SIZE]
+[B]1.2.3[/B]
+[LIST]
+[*]Effect tooltips: the colour tags of the game descriptions (<rgb=...>) are shown as colours instead of plain text.
+[*]Options: the currency lists of the bags and of the info bar scroll when you have many currencies.
+[/LIST]
 [B]1.2.2[/B]
 [LIST]
 [*]Bags: a warning in the chat for any other loaded plugin with "bag" in its name, not only Prime Bags and HugeBag. Two bag plugins at once fight over the bag keys.

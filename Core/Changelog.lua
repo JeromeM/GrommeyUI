@@ -3,6 +3,10 @@
 -- translations in Locales/*.lua.
 
 Grommey.Changelog = {
+    { version = "1.2.3"; items = {
+        L("Effect tooltips: the colour tags of the game descriptions (<rgb=...>) are shown as colours instead of plain text.");
+        L("Options: the currency lists of the bags and of the info bar scroll when you have many currencies.");
+    }; };
     { version = "1.2.2"; items = {
         L("Bags: a warning in the chat for any other loaded plugin with \"bag\" in its name, not only Prime Bags and HugeBag. Two bag plugins at once fight over the bag keys.");
     }; };
