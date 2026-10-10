@@ -142,6 +142,7 @@ local function BuildFrameOptions(page, width, key, section)
         UI.Slider(page, right, 72, half, L("Space between bars"), 0, 20, 1, settings.barGap or 2, function(value) settings.barGap = value; Changed(); end, " px");
         -- Morale and power glide to their new value instead of jumping
         UI.Toggle(page, 0, 130, width, L("Smooth bars (morale and power glide to their new value)"), settings.smoothBars == true, function(value) settings.smoothBars = value; Changed(); end);
+        UI.Toggle(page, 0, 162, width, L("Tooltip when the mouse is over the frame"), settings.tooltip ~= false, function(value) settings.tooltip = value; Changed(); end);
         return;
     elseif (section == "morale") then
         UI.Slider(page, 0, 0, half, L("Morale height"), 6, 40, 1, settings.moraleHeight, function(value) settings.moraleHeight = value; Changed(); end, " px");
@@ -216,6 +217,8 @@ local function BuildFrameOptions(page, width, key, section)
         UI.Slider(page, 0, y + 84, half, L("Space between bars"), 0, 20, 1, settings.barGap or 2, function(value) settings.barGap = value; Changed(); end, " px");
         if (key == "player") then
             UI.Toggle(page, 0, y + 138, half, L("Class resource"), settings.showResource, function(value) settings.showResource = value; Changed(); end);
+        else
+            UI.Toggle(page, 0, y + 138, half, L("Tooltip on mouse over"), settings.tooltip ~= false, function(value) settings.tooltip = value; Changed(); end);
         end
 
         -- Right column: the two bars

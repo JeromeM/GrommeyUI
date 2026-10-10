@@ -51,7 +51,7 @@ Texts are written in English in the code and translated in `Locales/fr.lua` and 
 
 ## Credits
 
-The travel skills of the travel bar (ids, icons and names in English, French and German) come from
+The travel skills of the travel bar and the stances of the stances bar (ids, icons and names in English, French and German) come from
 [LotroCompanion/lotro-data](https://github.com/LotroCompanion/lotro-data), thanks to its authors.
 
 ## License

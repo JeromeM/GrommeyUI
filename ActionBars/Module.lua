@@ -5,7 +5,8 @@
 -- Unlocked bars show their empty slots and a small cross on each shortcut to take it off.
 -- Automatic bars fill themselves from the backpack: the consumables bar with the food, potions and
 -- scrolls, the travel bar with the travel skills chosen by the player (ActionBars/Travel.lua) and the
--- travel items. Their cross hides an item from the bar.
+-- travel items, the stances bar with the stances the character knows (ActionBars/Stances.lua).
+-- Their cross hides an item from the bar.
 -- Any bar can show its name above it.
 
 local Theme = Grommey.Theme;
@@ -33,8 +34,10 @@ local AUTO = {
         description = "This bar fills itself with the food, potions and scrolls of your backpack, with their total quantity. Unlock the bars and use the cross to hide an item you do not want here."; };
     travel = { name = "Travel"; categories = BagCategory("Travel", { 191, 175, 186 });
         description = "This bar shows the travel skills you chose among the ones your character knows, then the travel items of your backpack. Unlock the bars and use the cross to take a skill or an item off the bar."; };
+    stances = { name = "Stances"; categories = {};
+        description = "This bar shows the stances your character knows (hunter, minstrel, guardian, warden, brawler), and fills itself when a new one is learned. Unlock the bars and use the cross to hide a stance."; };
 };
-local AUTO_ORDER = { "consumables", "travel" };
+local AUTO_ORDER = { "consumables", "travel", "stances" };
 local CONSUMABLES = AUTO.consumables.categories;
 
 local bars = {};            -- bar id = window
@@ -261,6 +264,16 @@ local function ScanItems(kind, hidden, barSettings)
         end
         for index = #skills, 1, -1 do table.insert(entries, 1, skills[index]); end
     end
+    -- Stances bar: the known stances, made from their id
+    if (kind == "stances") then
+        entries = {};
+        for _, stance in ipairs(Grommey.Stances.Known()) do
+            if (not hidden[stance.id]) then
+                local ok, shortcut = pcall(Turbine.UI.Lotro.Shortcut, ShortcutType.Skill, stance.id);
+                if (ok and shortcut) then table.insert(entries, { name = stance.id; count = 0; shortcut = shortcut; }); end
+            end
+        end
+    end
     return entries;
 end
 
@@ -365,8 +378,10 @@ local function CreateBar(barSettings, position)
     window.Refresh = function()
         local unlocked = Unlocked();
         local anyShown = false;
+        local anyFilled = false;
         for _, slot in ipairs(window.slots) do
             local filled = slot.IsFilled();
+            anyFilled = anyFilled or filled;
             slot:SetVisible(filled or unlocked or barSettings.showEmpty);
             anyShown = anyShown or filled or unlocked or barSettings.showEmpty;
             -- The bag item control can have the field behind it, the quickslot cannot
@@ -377,6 +392,8 @@ local function CreateBar(barSettings, position)
         if (window.title) then window.title:SetVisible(anyShown); end
 
         local shown = not Grommey.HudHidden;
+        -- A character without stances has no stances bar, except to place it
+        if (barSettings.kind == "stances" and not anyFilled and not moving) then shown = false; end
         if (shown and not unlocked) then
             local mode = barSettings.visibility;
             if (mode == "combat") then shown = player:IsInCombat();
@@ -392,6 +409,18 @@ local function CreateBar(barSettings, position)
     window.Scan = function()
         barSettings.hidden = barSettings.hidden or {};
         local entries = ScanItems(barSettings.kind, barSettings.hidden, barSettings);
+        -- The stances bar has one slot per stance, no more: a new count builds the bar again
+        if (barSettings.kind == "stances") then
+            local wanted = math.max(1, #entries);
+            if (wanted ~= barSettings.slots) then
+                barSettings.slots = wanted;
+                Grommey.Profiles.RequestSave();
+                Grommey.Delay("ActionBarsStances" .. id, 0.1, function()
+                    if (bars[id] == window) then window.Destroy(); bars[id] = CreateBar(barSettings, position); end
+                end);
+                return;
+            end
+        end
         local parts = {};
         for index = 1, math.min(#entries, #window.slots) do
             table.insert(parts, entries[index].name .. "=" .. entries[index].count);
@@ -605,7 +634,10 @@ local function BuildOptions(page, width, settings)
         UI.Toggle(page, 0, y, half, L("Name above the bar"), bar.showTitle == true, function(value) bar.showTitle = value; Changed(); end);
     end
     y = y + 40;
-    UI.Slider(page, 0, y, half, auto and L("Maximum items") or L("Number of slots"), 1, 36, 1, bar.slots, function(value) bar.slots = value; Changed(); end);
+    -- The stances bar has as many slots as stances
+    if (bar.kind ~= "stances") then
+        UI.Slider(page, 0, y, half, auto and L("Maximum items") or L("Number of slots"), 1, 36, 1, bar.slots, function(value) bar.slots = value; Changed(); end);
+    end
     UI.Slider(page, right, y, half, L("Slots per line"), 1, 36, 1, bar.perLine, function(value) bar.perLine = value; Changed(); end);
     y = y + 54;
     UI.Slider(page, 0, y, half, L("Spacing"), 0, 12, 1, bar.spacing, function(value) bar.spacing = value; Changed(); end, " px");
@@ -681,6 +713,7 @@ Grommey.Modules.Register({
         shortcuts = Grommey.Storage.Load(Turbine.DataScope.Character, SHORTCUTS_FILE) or {};
         -- The travel bars show a change of the choice at once
         Grommey.Travel.Start(player);
+        Grommey.Stances.Start(player);
         Grommey.Travel.OnChange(function()
             for id, window in pairs(bars) do
                 local barSettings = BarSettings(id);
@@ -688,6 +721,11 @@ Grommey.Modules.Register({
             end
         end);
         EnsureBars(settings);
+        -- The stances bar comes once on its own, the first time a character with stances logs in
+        if (not settings.stancesAdded and #Grommey.Stances.Known() > 0 and #settings.bars < MAX_BARS) then
+            settings.stancesAdded = true;
+            NewBar("stances", settings);
+        end
         Grommey.Profiles.RequestSave();
         Build();
 
@@ -718,6 +756,7 @@ Grommey.Modules.Register({
             local text = bar.name;
             if (bar.kind == "consumables") then text = L("Consumables bar (fills itself from the backpack)"); end
             if (bar.kind == "travel") then text = L("Travel bar (fills itself from the backpack)"); end
+            if (bar.kind == "stances") then text = L("Stances bar (fills itself with your stances)"); end
             UI.Toggle(page, 0, y, width, text, bar.enabled, function(value) bar.enabled = value; end);
             y = y + 34;
             if (y > 240) then break; end

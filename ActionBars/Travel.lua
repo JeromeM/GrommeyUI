@@ -4,6 +4,7 @@
 -- is known when its name in the client language is in that list. A few names exist twice: the icon,
 -- then the race of the character, tell them apart.
 -- The choice is kept for each character (classes have travel skills of their own).
+-- A travel skill or a mount learned later is chosen on its own, so it shows up on the bar.
 
 local UI = Grommey.UI;
 local Theme = Grommey.Theme;
@@ -12,6 +13,8 @@ Grommey.Travel = {};
 local Travel = Grommey.Travel;
 
 local CHOICE_FILE = "GrommeyUI_Travel";
+-- After loading, the game gives the trained skills a few at a time: they are not new
+local LOGIN_GRACE = 15;
 
 -- Families in display order, with their names
 Travel.FAMILIES = {
@@ -40,7 +43,8 @@ end
 for rank, familyInfo in ipairs(Travel.FAMILIES) do familyRank[familyInfo.key] = rank; end
 
 local player = nil;
-local choice = nil;         -- { chosen = { id = true }, order = { id, ... }, initialized = true }
+local choice = nil;         -- { chosen = { id = true }, order = { id, ... }, seen = { id = true }, initialized = true }
+local startedAt = 0;
 local known = {};           -- known entries, in the order of the base
 local trainedCount = -1;
 local listeners = {};
@@ -162,6 +166,9 @@ local function UpdateKnown()
         end
     end
 
+    -- Skills already known are only remembered: while loading, and the first time
+    local quiet = (Turbine.Engine.GetGameTime() - startedAt < LOGIN_GRACE) or not choice.initialized;
+
     -- The first time, the return home skills and the houses are chosen
     if (not choice.initialized and #known > 0) then
         choice.initialized = true;
@@ -173,6 +180,21 @@ local function UpdateKnown()
         end
         Save();
     end
+
+    -- A skill never seen before was just learned: it goes on the bar
+    choice.seen = choice.seen or {};
+    local learned = false;
+    for _, entry in ipairs(known) do
+        if (not choice.seen[entry.id]) then
+            choice.seen[entry.id] = true;
+            learned = true;
+            if (not quiet and not choice.chosen[entry.id]) then
+                choice.chosen[entry.id] = true;
+                table.insert(choice.order, entry.id);
+            end
+        end
+    end
+    if (learned) then Save(); end
     return true;
 end
 
@@ -181,6 +203,7 @@ function Travel.Start(localPlayer)
     choice = Grommey.Storage.Load(Turbine.DataScope.Character, CHOICE_FILE) or {};
     choice.chosen = choice.chosen or {};
     choice.order = choice.order or {};
+    startedAt = Turbine.Engine.GetGameTime();
     trainedCount = -1;
     UpdateKnown();
 end

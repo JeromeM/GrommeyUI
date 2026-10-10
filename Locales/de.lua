@@ -641,4 +641,26 @@ Grommey.AddTranslations("de", {
     -- What's new 1.2.3
     ["Effect tooltips: the colour tags of the game descriptions (<rgb=...>) are shown as colours instead of plain text."] = "Effekt-Tooltips: die Farbmarkierungen der Spielbeschreibungen (<rgb=...>) werden als Farben statt als Text angezeigt.";
     ["Options: the currency lists of the bags and of the info bar scroll when you have many currencies."] = "Optionen: die Währungslisten der Taschen und der Infoleiste lassen sich scrollen, wenn du viele Währungen hast.";
+    -- Stances bar
+    ["Stances"] = "Haltungen";
+    ["Stances bar (fills itself with your stances)"] = "Haltungsleiste (füllt sich mit deinen Haltungen)";
+    ["This bar shows the stances your character knows (hunter, minstrel, guardian, warden, brawler), and fills itself when a new one is learned. Unlock the bars and use the cross to hide a stance."] = "Diese Leiste zeigt die Haltungen, die dein Charakter kennt (Jäger, Barde, Wächter, Hüter, Schläger), und ergänzt sich, wenn er eine neue lernt. Entsperre die Leisten und nutze das Kreuz, um eine Haltung auszublenden.";
+    -- Tooltip of the unit frames
+    ["%s: %s / %s  (%d %%)"] = "%s: %s / %s  (%d %%)";
+    ["Level %d"] = "Stufe %d";
+    ["Target: %s"] = "Ziel: %s";
+    ["Tooltip on mouse over"] = "Tooltip beim Überfahren";
+    ["Tooltip when the mouse is over the frame"] = "Tooltip, wenn die Maus über dem Rahmen ist";
+    ["Beorning"] = "Beorninger";
+    ["Brawler"] = "Schläger";
+    ["Burglar"] = "Schurke";
+    ["Captain"] = "Hauptmann";
+    ["Champion"] = "Waffenmeister";
+    ["Guardian"] = "Wächter";
+    ["Hunter"] = "Jäger";
+    ["Lore-master"] = "Kundiger";
+    ["Minstrel"] = "Barde";
+    ["Rune-keeper"] = "Runenbewahrer";
+    ["Warden"] = "Hüter";
+    ["Mariner"] = "Seefahrer";
 });

@@ -74,6 +74,13 @@ function UF.UnitPanel:Constructor(parent, settings)
             self.entityControl:SetZOrder(10);
         end
     end
+
+    -- Tooltip of the unit while the mouse is over the frame
+    local hover = self.entityControl or self;
+    hover.MouseEnter = function()
+        if (self.settings.tooltip ~= false and self.unit ~= nil) then UF.ShowUnitTooltip(self.unit); end
+    end
+    hover.MouseLeave = function() UF.HideUnitTooltip(); end
 end
 
 -- Lays out the panel from its settings and returns its size

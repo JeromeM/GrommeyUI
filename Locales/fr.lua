@@ -641,4 +641,26 @@ Grommey.AddTranslations("fr", {
     -- What's new 1.2.3
     ["Effect tooltips: the colour tags of the game descriptions (<rgb=...>) are shown as colours instead of plain text."] = "Infobulles des effets : les balises de couleur des descriptions du jeu (<rgb=...>) s'affichent en couleur au lieu d'apparaître en texte.";
     ["Options: the currency lists of the bags and of the info bar scroll when you have many currencies."] = "Options : les listes de monnaies des sacs et de la barre d'infos défilent quand tu as beaucoup de monnaies.";
+    -- Stances bar
+    ["Stances"] = "Postures";
+    ["Stances bar (fills itself with your stances)"] = "Barre des postures (se remplit avec tes postures)";
+    ["This bar shows the stances your character knows (hunter, minstrel, guardian, warden, brawler), and fills itself when a new one is learned. Unlock the bars and use the cross to hide a stance."] = "Cette barre affiche les postures que ton personnage connaît (chasseur, ménestrel, gardien, sentinelle, pugiliste) et se complète quand il en apprend une nouvelle. Déverrouille les barres et utilise la croix pour masquer une posture.";
+    -- Tooltip of the unit frames
+    ["%s: %s / %s  (%d %%)"] = "%s : %s / %s  (%d %%)";
+    ["Level %d"] = "Niveau %d";
+    ["Target: %s"] = "Cible : %s";
+    ["Tooltip on mouse over"] = "Infobulle au survol";
+    ["Tooltip when the mouse is over the frame"] = "Infobulle quand la souris survole le cadre";
+    ["Beorning"] = "Béornide";
+    ["Brawler"] = "Pugiliste";
+    ["Burglar"] = "Cambrioleur";
+    ["Captain"] = "Capitaine";
+    ["Champion"] = "Champion";
+    ["Guardian"] = "Gardien";
+    ["Hunter"] = "Chasseur";
+    ["Lore-master"] = "Maître du savoir";
+    ["Minstrel"] = "Ménestrel";
+    ["Rune-keeper"] = "Gardien des runes";
+    ["Warden"] = "Sentinelle";
+    ["Mariner"] = "Marin";
 });

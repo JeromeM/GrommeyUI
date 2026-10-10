@@ -1,5 +1,6 @@
 import "GrommeyUI.UnitFrames.Bar";
 import "GrommeyUI.UnitFrames.Preview";
+import "GrommeyUI.UnitFrames.UnitTooltip";
 import "GrommeyUI.UnitFrames.ClassResource";
 import "GrommeyUI.UnitFrames.UnitPanel";
 import "GrommeyUI.UnitFrames.FreeResource";
